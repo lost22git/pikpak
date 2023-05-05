@@ -9,5 +9,5 @@ pluginManagement {
   }
 }
 
-rootProject.name = "gradle-project-template"
+rootProject.name = "pikpak"
 
