@@ -1,0 +1,53 @@
+plugins {
+  id("groovy")
+  alias(libs.plugins.versions)
+  alias(libs.plugins.version.catalog.update)
+}
+
+allprojects {
+  group = "template"
+  version = "1.0.0"
+
+  repositories {
+    mavenLocal()
+    mavenCentral()
+  }
+
+}
+
+subprojects {
+  apply {
+    plugin("groovy")
+  }
+
+  java {
+    sourceCompatibility = JavaVersion.VERSION_19
+    targetCompatibility = JavaVersion.VERSION_19
+  }
+
+  dependencies {
+    // annotation
+    compileOnly(libs.jetbrains.annotations)
+    testCompileOnly(libs.jetbrains.annotations)
+    // log
+    implementation(libs.slf4j)
+    // test
+    testImplementation(libs.logback)
+    testImplementation(libs.bundles.junit)
+    testImplementation(libs.assertj)
+    testImplementation(libs.awaitility)
+    testImplementation(libs.easyrandom.core)
+  }
+
+  tasks.compileJava {
+    options.encoding = "UTF-8"
+    options.compilerArgs.add("-parameters")
+    options.compilerArgs.add("--enable-preview")
+  }
+
+  tasks.test {
+    useJUnitPlatform()
+  }
+}
+
+apply from: "./gradle_scripts/version_catalog_update.gradle"

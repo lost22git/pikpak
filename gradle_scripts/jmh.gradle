@@ -1,0 +1,12 @@
+
+jmh {
+  resultFormat.set("JSON")
+  jvmArgsAppend = []
+}
+
+jmhReport {
+  jmhResultPath = project.file('build/results/jmh/results.json')
+  jmhReportOutput = project.file('build/results/jmh')
+}
+
+tasks.jmh.finalizedBy tasks.jmhReport
