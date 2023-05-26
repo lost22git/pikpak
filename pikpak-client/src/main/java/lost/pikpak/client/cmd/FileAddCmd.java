@@ -11,13 +11,15 @@ import lost.pikpak.client.model.FileAddParamBuilder;
 import lost.pikpak.client.model.FileAddParamParamsBuilder;
 import lost.pikpak.client.model.FileAddParamUrlBuilder;
 import lost.pikpak.client.model.FileAddResult;
+import lost.pikpak.client.token.RequireAccessToken;
+import lost.pikpak.client.token.RequireCaptchaToken;
 import lost.pikpak.client.util.Util;
 
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.util.Objects;
 
-public interface FileAddCmd extends Cmd<FileAddResult>, WithContext, ObtainCaptchaToken {
+public interface FileAddCmd extends Cmd<FileAddResult>, WithContext, RequireCaptchaToken, RequireAccessToken {
 
     static FileAddCmd create(Context context) {
         Objects.requireNonNull(context);
@@ -147,8 +149,8 @@ public interface FileAddCmd extends Cmd<FileAddResult>, WithContext, ObtainCaptc
 
             // Headers
             var headers = httpClient.commonHeaders();
-            headers.put(HttpHeader.AUTHORIZATION.getValue(), cmd.context().obtainAccessToken().tokenString());
-            headers.put(HttpHeader.CAPTCHA_TOKEN.getValue(), cmd.obtainCaptchaToken().tokenValue());
+            headers.put(HttpHeader.AUTHORIZATION.getValue(), cmd.requireAccessToken().tokenString());
+            headers.put(HttpHeader.CAPTCHA_TOKEN.getValue(), cmd.requireCaptchaToken().tokenValue());
             // Body
             var param = FileAddParamBuilder.builder()
                 .url(FileAddParamUrlBuilder.builder().url(cmd.url()).build())

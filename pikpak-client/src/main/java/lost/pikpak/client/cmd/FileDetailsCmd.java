@@ -5,12 +5,14 @@ import lost.pikpak.client.context.WithContext;
 import lost.pikpak.client.enums.HttpHeader;
 import lost.pikpak.client.error.ApiError;
 import lost.pikpak.client.model.FileDetailsResult;
+import lost.pikpak.client.token.RequireAccessToken;
+import lost.pikpak.client.token.RequireCaptchaToken;
 
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.util.Objects;
 
-public interface FileDetailsCmd extends Cmd<FileDetailsResult>, WithContext, ObtainCaptchaToken {
+public interface FileDetailsCmd extends Cmd<FileDetailsResult>, WithContext, RequireCaptchaToken, RequireAccessToken {
 
     static FileDetailsCmd create(Context context,
                                  String fileId) {
@@ -76,8 +78,8 @@ public interface FileDetailsCmd extends Cmd<FileDetailsResult>, WithContext, Obt
 
             // Headers
             var headers = httpClient.commonHeaders();
-            headers.put(HttpHeader.AUTHORIZATION.getValue(), cmd.context().obtainAccessToken().tokenString());
-            headers.put(HttpHeader.CAPTCHA_TOKEN.getValue(), cmd.obtainCaptchaToken().tokenValue());
+            headers.put(HttpHeader.AUTHORIZATION.getValue(), cmd.requireAccessToken().tokenString());
+            headers.put(HttpHeader.CAPTCHA_TOKEN.getValue(), cmd.requireCaptchaToken().tokenValue());
 
             // Request
             var uri = URI.create("https://api-drive.mypikpak.com/drive/v1/files/%s".formatted(cmd.fileId()));

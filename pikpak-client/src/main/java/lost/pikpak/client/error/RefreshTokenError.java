@@ -1,6 +1,6 @@
 package lost.pikpak.client.error;
 
-import lost.pikpak.client.Token;
+import lost.pikpak.client.token.Token;
 
 import java.util.Optional;
 

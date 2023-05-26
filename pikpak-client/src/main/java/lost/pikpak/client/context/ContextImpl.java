@@ -1,17 +1,13 @@
 package lost.pikpak.client.context;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.Expiry;
 import lost.pikpak.client.Config;
 import lost.pikpak.client.PikPakClient;
-import lost.pikpak.client.Token;
 import lost.pikpak.client.cmd.*;
 import lost.pikpak.client.http.HttpClient;
-import org.checkerframework.checker.index.qual.NonNegative;
+import lost.pikpak.client.token.AccessTokenProvider;
+import lost.pikpak.client.token.CaptchaTokenProvider;
 
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 public class ContextImpl implements Context {
     private final PikPakClient pikpak;
@@ -20,9 +16,9 @@ public class ContextImpl implements Context {
     // TODO lazy
     // TODO close resource
     private final HttpClient httpClient;
-    // TODO lazy
+    private final AccessTokenProvider accessTokenProvider;
     // TODO close resource
-    private final Cache<String, Token.CaptchaToken> captchaTokenCache;
+    private final CaptchaTokenProvider captchaTokenProvider;
 
     public ContextImpl(PikPakClient pikpak,
                        Config.User userConfig) {
@@ -31,32 +27,8 @@ public class ContextImpl implements Context {
         this.pikpak = pikpak;
         this.userConfig = userConfig;
         this.httpClient = HttpClient.create(this);
-        this.captchaTokenCache = Caffeine.newBuilder()
-            .expireAfter(new Expiry<String, Token.CaptchaToken>() {
-                @Override
-                public long expireAfterCreate(String key,
-                                              Token.CaptchaToken value,
-                                              long currentTime) {
-                    return TimeUnit.SECONDS.toNanos(value.expiresAt().toEpochSecond()) - currentTime;
-                }
-
-                @Override
-                public long expireAfterUpdate(String key,
-                                              Token.CaptchaToken value,
-                                              long currentTime,
-                                              @NonNegative long currentDuration) {
-                    return TimeUnit.SECONDS.toNanos(value.expiresAt().toEpochSecond()) - currentTime;
-                }
-
-                @Override
-                public long expireAfterRead(String key,
-                                            Token.CaptchaToken value,
-                                            long currentTime,
-                                            @NonNegative long currentDuration) {
-                    return currentDuration;
-                }
-            })
-            .build();
+        this.accessTokenProvider = AccessTokenProvider.create(this);
+        this.captchaTokenProvider = CaptchaTokenProvider.create(this);
     }
 
     @Override
@@ -75,15 +47,13 @@ public class ContextImpl implements Context {
     }
 
     @Override
-    public Token.CaptchaToken captchaToken(String action) {
-        return this.captchaTokenCache.getIfPresent(action);
+    public AccessTokenProvider accessTokenProvider() {
+        return this.accessTokenProvider;
     }
 
     @Override
-    public Context setCaptchaToken(String action,
-                                   Token.CaptchaToken token) {
-        this.captchaTokenCache.put(action, token);
-        return this;
+    public CaptchaTokenProvider captchaTokenProvider() {
+        return this.captchaTokenProvider;
     }
 
 

@@ -1,4 +1,4 @@
-package lost.pikpak.client;
+package lost.pikpak.client.token;
 
 import io.avaje.jsonb.Json;
 import io.soabase.recordbuilder.core.RecordBuilderFull;

@@ -1,8 +1,6 @@
 package lost.pikpak.client.cmd;
 
 import lost.pikpak.client.Config;
-import lost.pikpak.client.Token;
-import lost.pikpak.client.TokenAccessTokenBuilder;
 import lost.pikpak.client.context.Context;
 import lost.pikpak.client.context.WithContext;
 import lost.pikpak.client.enums.HttpHeader;
@@ -11,6 +9,9 @@ import lost.pikpak.client.error.ApiError;
 import lost.pikpak.client.error.SignInError;
 import lost.pikpak.client.model.SignInParamBuilder;
 import lost.pikpak.client.model.SignInResult;
+import lost.pikpak.client.token.RequireCaptchaToken;
+import lost.pikpak.client.token.Token;
+import lost.pikpak.client.token.TokenAccessTokenBuilder;
 import lost.pikpak.client.util.Util;
 
 import java.net.URI;
@@ -18,7 +19,7 @@ import java.net.http.HttpRequest;
 import java.time.OffsetDateTime;
 import java.util.Objects;
 
-public interface SignInCmd extends Cmd<Void>, WithContext, ObtainCaptchaToken {
+public interface SignInCmd extends Cmd<Void>, WithContext, RequireCaptchaToken {
 
     static SignInCmd create(Context context) {
         return new Impl(context);
@@ -89,7 +90,7 @@ public interface SignInCmd extends Cmd<Void>, WithContext, ObtainCaptchaToken {
 
             // Headers
             var headers = httpClient.commonHeaders();
-            headers.put(HttpHeader.CAPTCHA_TOKEN.getValue(), cmd.obtainCaptchaToken().tokenValue());
+            headers.put(HttpHeader.CAPTCHA_TOKEN.getValue(), cmd.requireCaptchaToken().tokenValue());
             // Body
             var username = userConfig.username();
             var passwd = userConfig.passwd();

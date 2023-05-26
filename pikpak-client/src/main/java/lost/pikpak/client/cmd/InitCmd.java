@@ -1,13 +1,13 @@
 package lost.pikpak.client.cmd;
 
 import lost.pikpak.client.Config;
-import lost.pikpak.client.Token;
 import lost.pikpak.client.context.Context;
 import lost.pikpak.client.context.WithContext;
 import lost.pikpak.client.error.ApiError;
 import lost.pikpak.client.model.InitInfoParamBuilder;
 import lost.pikpak.client.model.InitInfoParamMetaParamBuilder;
 import lost.pikpak.client.model.InitInfoResult;
+import lost.pikpak.client.token.Token;
 import lost.pikpak.client.util.Util;
 
 import java.net.URI;

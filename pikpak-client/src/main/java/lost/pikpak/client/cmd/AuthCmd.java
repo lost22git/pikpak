@@ -1,8 +1,6 @@
 package lost.pikpak.client.cmd;
 
 import lost.pikpak.client.Config;
-import lost.pikpak.client.Token;
-import lost.pikpak.client.TokenAccessTokenBuilder;
 import lost.pikpak.client.context.Context;
 import lost.pikpak.client.context.WithContext;
 import lost.pikpak.client.enums.TokenType;
@@ -10,6 +8,8 @@ import lost.pikpak.client.error.ApiError;
 import lost.pikpak.client.error.RefreshTokenError;
 import lost.pikpak.client.model.RefreshTokenParamBuilder;
 import lost.pikpak.client.model.RefreshTokenResult;
+import lost.pikpak.client.token.Token;
+import lost.pikpak.client.token.TokenAccessTokenBuilder;
 import lost.pikpak.client.util.Util;
 
 import java.net.URI;

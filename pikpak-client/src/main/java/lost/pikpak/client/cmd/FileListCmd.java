@@ -8,6 +8,8 @@ import lost.pikpak.client.enums.ThumbnailSize;
 import lost.pikpak.client.error.ApiError;
 import lost.pikpak.client.model.FileListParamBuilder;
 import lost.pikpak.client.model.FileListResult;
+import lost.pikpak.client.token.RequireAccessToken;
+import lost.pikpak.client.token.RequireCaptchaToken;
 import lost.pikpak.client.util.Util;
 
 import java.net.URI;
@@ -16,7 +18,7 @@ import java.net.http.HttpRequest;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
-public interface FileListCmd extends Cmd<FileListResult>, WithContext, ObtainCaptchaToken {
+public interface FileListCmd extends Cmd<FileListResult>, WithContext, RequireCaptchaToken, RequireAccessToken {
     static FileListCmd create(Context context) {
         return new Impl(context);
     }
@@ -158,8 +160,8 @@ public interface FileListCmd extends Cmd<FileListResult>, WithContext, ObtainCap
 
             // Headers
             var headers = httpClient.commonHeaders();
-            headers.put(HttpHeader.AUTHORIZATION.getValue(), cmd.context().obtainAccessToken().tokenString());
-            headers.put(HttpHeader.CAPTCHA_TOKEN.getValue(), cmd.obtainCaptchaToken().tokenValue());
+            headers.put(HttpHeader.AUTHORIZATION.getValue(), cmd.requireAccessToken().tokenString());
+            headers.put(HttpHeader.CAPTCHA_TOKEN.getValue(), cmd.requireCaptchaToken().tokenValue());
             // QueryParams
             var param = FileListParamBuilder.builder()
                 .limit(cmd.limit())

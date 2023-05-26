@@ -1,6 +1,7 @@
 package lost.pikpak.client;
 
 import io.avaje.jsonb.Json;
+import lost.pikpak.client.token.Token;
 
 import java.net.URI;
 import java.util.HashMap;

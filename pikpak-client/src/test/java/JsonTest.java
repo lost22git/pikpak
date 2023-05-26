@@ -1,9 +1,9 @@
 import io.avaje.jsonb.Types;
 import io.avaje.jsonb.stream.JsonStream;
 import lost.pikpak.client.Config;
-import lost.pikpak.client.Token;
 import lost.pikpak.client.enums.TokenType;
 import lost.pikpak.client.model.*;
+import lost.pikpak.client.token.Token;
 import lost.pikpak.client.util.Util;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
