@@ -1,0 +1,11 @@
+dependencies {
+  // avaje jsonb
+  implementation(libs.avaje.jsonb)
+  annotationProcessor(libs.avaje.jsonb.generator)
+  // caffeine
+  implementation(libs.caffeine)
+  // record builder
+  compileOnly(libs.record.builder)
+  annotationProcessor(libs.record.builder.processor)
+
+}

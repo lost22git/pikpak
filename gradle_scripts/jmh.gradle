@@ -1,4 +1,3 @@
-
 jmh {
   resultFormat.set("JSON")
   jvmArgsAppend = []

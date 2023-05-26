@@ -1,4 +1,3 @@
-
 application {
   mainClass = "${project.mainClass}"
 }

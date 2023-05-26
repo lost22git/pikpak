@@ -4,7 +4,7 @@ versionCatalogUpdate {
   // Referenced that are pinned are not automatically updated.
   // They are also not automatically kept however (use keep for that).
   pin {
-//      versions = ["my-version-name", "other-version"]
+    // versions = [""]
 //      libraries = [libs.my.library.reference, libs.my.other.library.reference]
 //      plugins = [libs.plugins.my.plugin, libs.plugins.my.other.plugin]
 //      groups = ["com.somegroup", "com.someothergroup"]
