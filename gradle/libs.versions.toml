@@ -1,18 +1,18 @@
 [versions]
 assertj = "3.24.2"
-avaje-jsonb = "1.5-RC1"
+avaje-jsonb = "1.6-RC1"
 awaitility = "4.2.0"
-easyrandom = "6.1.5"
+caffeine = "3.1.6"
+easyrandom = "6.1.8"
 jetbrains-annotations = "24.0.1"
 jmh = "1.35"
-junit = "5.9.3"
+junit = "5.10.0-M1"
 plugin-jmh = "0.6.6"
 plugin-jmhReport = "0.9.0"
 plugin-nativeimage = "0.9.16"
 plugin-shadow = "7.1.2"
 plugin-version-catalog-update = "0.8.0"
 plugin-versions = "0.46.0"
-caffeine = "3.1.6"
 record-builder = "36"
 
 [libraries]
@@ -20,6 +20,7 @@ assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 avaje-jsonb = { module = "io.avaje:avaje-jsonb", version.ref = "avaje-jsonb" }
 avaje-jsonb-generator = { module = "io.avaje:avaje-jsonb-generator", version.ref = "avaje-jsonb" }
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
+caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
 easyrandom-core = { module = "io.github.dvgaba:easy-random-core", version.ref = "easyrandom" }
 jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains-annotations" }
 jmh-core = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh" }
@@ -27,19 +28,18 @@ jmh-generator-annprocess = { module = "org.openjdk.jmh:jmh-generator-annprocess"
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
 junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit" }
-caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
 record-builder = { module = "io.soabase.record-builder:record-builder-core", version.ref = "record-builder" }
 record-builder-processor = { module = "io.soabase.record-builder:record-builder-processor", version.ref = "record-builder" }
 
 [bundles]
 jmh = [
-  "jmh-core",
-  "jmh-generator-annprocess",
+    "jmh-core",
+    "jmh-generator-annprocess",
 ]
 junit = [
-  "junit-jupiter-api",
-  "junit-jupiter-engine",
-  "junit-jupiter-params",
+    "junit-jupiter-api",
+    "junit-jupiter-engine",
+    "junit-jupiter-params",
 ]
 
 [plugins]
