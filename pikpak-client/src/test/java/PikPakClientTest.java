@@ -8,18 +8,16 @@ public class PikPakClientTest {
 
     @Test
     void createDefault() {
-        var pikPak = new PikPakClient();
+        var pikPak = PikPakClient.create();
         assertThat(pikPak.context("")).isEmpty();
     }
 
     @Test
     void addUser() {
-        var pikPak = new PikPakClient();
+        var pikPak = PikPakClient.create();
 
-        var context = pikPak.addContext(
-            "xxx",
-            new Config.User("xxx", null, null, null)
-        ).context("xxx");
+        var context = pikPak.addContext(Config.User.create("xxx"))
+            .context("xxx");
 
         assertThat(context).isNotNull();
 

@@ -74,6 +74,10 @@ public record Config(
             this.data = data == null ? new Data() : data;
         }
 
+        public static User create(String username) {
+            return new User(username, null, null, null);
+        }
+
         public String username() {
             return username;
         }

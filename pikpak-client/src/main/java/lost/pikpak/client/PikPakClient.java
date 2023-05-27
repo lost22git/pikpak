@@ -14,13 +14,17 @@ public class PikPakClient {
     private final Config config;
     private final Map<String, Context> contexts = new HashMap<>();
 
-    public PikPakClient() {
-        this(null);
-    }
-
-    public PikPakClient(Config config) {
+    private PikPakClient(Config config) {
         this.config = config == null ? Config.createDefault() : config;
         loadContextsFromConfig();
+    }
+
+    public static PikPakClient create() {
+        return new PikPakClient(null);
+    }
+
+    public static PikPakClient create(Config config) {
+        return new PikPakClient(config);
     }
 
     private void loadContextsFromConfig() {
@@ -43,13 +47,11 @@ public class PikPakClient {
         return Optional.ofNullable(contexts.getOrDefault(username, null));
     }
 
-    public PikPakClient addContext(String username,
-                                   Config.User user) {
-        Objects.requireNonNull(username);
+    public PikPakClient addContext(Config.User user) {
         Objects.requireNonNull(user);
         this.config.addUser(user);
         var context = Context.create(this, user);
-        this.contexts.put(username, context);
+        this.contexts.put(user.username(), context);
         return this;
     }
 

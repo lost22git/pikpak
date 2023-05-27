@@ -13,10 +13,10 @@ public class InitCmdTest {
 
     @Test
     void exec() throws Exception {
-        var pikpak = new PikPakClient();
+        var pikpak = PikPakClient.create();
         var username = "tt@uuf.me";
         var passwd = "ringbuffer111";
-        var context = pikpak.addContext(username, new Config.User(username, passwd, null, null))
+        var context = pikpak.addContext(Config.User.create(username).setPasswd(passwd))
             .context(username).get();
         var action = "POST:/v1/auth/signin";
         var initInfoResult = context.initCmd(action).exec();

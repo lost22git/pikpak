@@ -16,10 +16,10 @@ public class FileAddCmdTest {
 
     //    @Test
     void exec() throws Exception {
-        var pikpak = new PikPakClient();
+        var pikpak = PikPakClient.create();
         var username = "tt@uuf.me";
         var passwd = "ringbuffer111";
-        var context = pikpak.addContext(username, new Config.User(username, passwd, null, null))
+        var context = pikpak.addContext(Config.User.create(username).setPasswd(passwd))
             .context(username).get();
 
         context.signInCmd().exec();
