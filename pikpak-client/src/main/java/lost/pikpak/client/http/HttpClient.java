@@ -4,7 +4,6 @@ import lost.pikpak.client.Config;
 import lost.pikpak.client.context.Context;
 import lost.pikpak.client.context.WithContext;
 import lost.pikpak.client.enums.HttpHeader;
-import lost.pikpak.client.error.ApiError;
 import lost.pikpak.client.error.HttpError;
 import lost.pikpak.client.error.InvalidCaptchaTokenError;
 import lost.pikpak.client.error.UnAuthError;
@@ -13,6 +12,7 @@ import lost.pikpak.client.util.Util;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.http.HttpRequest;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,43 +25,90 @@ public interface HttpClient extends WithContext {
         return new HttpClientImpl(context);
     }
 
-    HttpResponse doSend(HttpRequest request) throws Exception;
+    /**
+     * NOTE: not recommended to call directly
+     * <p>
+     * Send request and return response, throw Exception if any exception occurred
+     * <p>
+     * Better choices:
+     * <p>
+     * 1) {@link HttpClient#send(HttpRequest, java.net.http.HttpResponse.BodyHandler)}
+     * <p>
+     * 2) {@link HttpClient#send(HttpRequest, Type)}
+     *
+     * @param request     the request
+     * @param bodyHandler the body handler to handle body content
+     * @param <T>         the type of body, subtypes of {@link lost.pikpak.client.http.HttpResponse.Body}
+     * @param <V>         the type of body internal ok value
+     * @param <E>         the type of body internal error value
+     * @return the response
+     * @throws Exception the exception
+     */
+    <T extends HttpResponse.Body<V, E>, V, E> HttpResponse<T, V, E> doSend(HttpRequest request,
+                                                                           java.net.http.HttpResponse.BodyHandler<T> bodyHandler) throws Exception;
 
-    default String send(HttpRequest request) throws HttpError {
+    /**
+     * Send request and return ok response, throw {@link HttpError} if we get error response or any exception occurred
+     *
+     * @param request     the request
+     * @param bodyHandler the body handler to handle body content
+     * @param <T>         the type of body, subtypes of {@link lost.pikpak.client.http.HttpResponse.Body}
+     * @param <V>         the type of body internal ok value
+     * @param <E>         the type of body internal error value
+     * @return the ok response ( {@link HttpResponse} with {@link lost.pikpak.client.http.HttpResponse.OkBody} )
+     * @throws HttpError the error if we get error response ( {@link HttpResponse} with {@link lost.pikpak.client.http.HttpResponse.ErrBody} )
+     */
+    default <T extends HttpResponse.Body<V, E>, V, E> HttpResponse<T, V, E> send(HttpRequest request,
+                                                                                 java.net.http.HttpResponse.BodyHandler<T> bodyHandler) throws HttpError {
+
+        // TODO replace these into interceptors ?
 
         var uri = request.uri();
         var requestId = Util.genRequestId();
         logRequest(requestId, request);
         try {
-            var res = doSend(request);
+            var res = this.doSend(request, bodyHandler);
             logResponse(requestId, res);
-            return bodyOrThrow(res);
+            // throw http error if body is ErrBody
+            if (res.body().isErr()) {
+                var e = new HttpError(res);
+                if (e.isUnAuthError()) {
+                    throw new UnAuthError(context().userConfig().username(), e);
+                } else if (e.isCaptchaTokenError()) {
+                    throw new InvalidCaptchaTokenError(e);
+                }
+                throw e;
+            }
+            return res;
         } catch (Exception e) {
             throw HttpError.wrap(uri, e);
         }
     }
 
+    /**
+     * Send request and return response body, throw {@link HttpError} if we get error response or any exception occurred
+     *
+     * @param request  the request
+     * @param bodyType the type of ok response body
+     * @param <T>      the type of ok response body
+     * @return ok response body
+     * @throws HttpError the error if we get error response ( {@link HttpResponse} with {@link lost.pikpak.client.http.HttpResponse.ErrBody} )
+     */
+    @SuppressWarnings("unchecked")
     default <T> T send(HttpRequest request,
                        Type bodyType) throws HttpError {
-        var bodyJson = send(request);
-        // replace "" to null
-        bodyJson = bodyJson.replace("\"\"", "null");
-        return Util.fromJson(bodyJson, bodyType);
-    }
-
-    private String bodyOrThrow(HttpResponse response) throws ApiError {
-        var status = response.status();
-        if (200 <= status && status < 300) {
-            return response.body();
-        } else {
-            var e = new HttpError(response);
-            if (e.isUnAuthError()) {
-                throw new UnAuthError(context().userConfig().username(), e);
-            } else if (e.isCaptchaTokenError()) {
-                throw new InvalidCaptchaTokenError(e);
+        var res = send(request, responseInfo ->
+        {
+            int status = responseInfo.statusCode();
+            if (200 <= status && status < 300) {
+                var ups = (java.net.http.HttpResponse.BodySubscriber<T>) Util.jsonBodyHandle(bodyType).apply(responseInfo);
+                return HttpResponse.Body.okBodySubscriber(ups);
+            } else {
+                var ups = java.net.http.HttpResponse.BodySubscribers.ofString(StandardCharsets.UTF_8);
+                return HttpResponse.Body.errBodySubscriber(ups);
             }
-            throw e;
-        }
+        });
+        return res.body().value();
     }
 
     default Map<String, String> commonHeaders() {
@@ -107,8 +154,8 @@ public interface HttpClient extends WithContext {
         }
     }
 
-    private void logResponse(String requestId,
-                             HttpResponse response) {
+    private <T extends HttpResponse.Body<V, E>, V, E> void logResponse(String requestId,
+                                                                       HttpResponse<T, V, E> response) {
         if (LOG.isLoggable(DEBUG)) {
             var sb = new StringBuilder();
             sb.append("HTTP[%s]".formatted(requestId));

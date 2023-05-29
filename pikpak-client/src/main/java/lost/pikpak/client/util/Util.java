@@ -6,7 +6,9 @@ import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.net.URL;
 import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -128,6 +130,18 @@ public final class Util {
         return HttpRequest.BodyPublishers.ofByteArray(toJsonBytes(obj));
     }
 
+    public static <T> HttpResponse.BodyHandler<T> jsonBodyHandle(Type bodyType) {
+        return responseInfo -> HttpResponse.BodySubscribers.mapping(
+            HttpResponse.BodySubscribers.ofString(StandardCharsets.UTF_8),
+            bodyJson -> {
+                // replace value "" into null
+                // e.g. { "name": "" } -> { "name": null }
+                bodyJson = bodyJson.replace("\"\"", "null");
+                return Util.fromJson(bodyJson, bodyType);
+            }
+        );
+    }
+
     /**
      * subscribe `publisher` and collect items into String
      *
@@ -137,7 +151,7 @@ public final class Util {
     public static String collectIntoString(Flow.Publisher<ByteBuffer> publisher) {
         return new Flow.Subscriber<ByteBuffer>() {
             private final CompletableFuture<List<ByteBuffer>> result = new CompletableFuture<>();
-            private List<ByteBuffer> list = new ArrayList<>();
+            private List<ByteBuffer> buffers = new ArrayList<>();
             private Flow.Subscription subscription;
 
             public String collect(Flow.Publisher<ByteBuffer> pub) {
@@ -165,20 +179,20 @@ public final class Util {
 
             @Override
             public void onNext(ByteBuffer item) {
-                list.add(item);
+                buffers.add(item);
                 this.subscription.request(1);
             }
 
             @Override
             public void onError(Throwable throwable) {
-                list.clear();
+                buffers.clear();
                 result.completeExceptionally(throwable);
             }
 
             @Override
             public void onComplete() {
-                var copy = List.copyOf(list);
-                list.clear();
+                var copy = List.copyOf(buffers);
+                buffers.clear();
                 result.complete(copy);
             }
         }.collect(publisher);
@@ -223,4 +237,5 @@ public final class Util {
             }
         }
     }
+
 }

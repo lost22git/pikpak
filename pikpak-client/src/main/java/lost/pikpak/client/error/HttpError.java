@@ -6,10 +6,10 @@ import java.net.URI;
 
 public final class HttpError extends ApiError {
 
-    public final HttpResponse response;
+    public final HttpResponse<?, ?> response;
     public final URI uri;
 
-    public HttpError(HttpResponse response) {
+    public HttpError(HttpResponse<?, ?> response) {
         super("http error: uri=%s status=%d\ncontent=%s".formatted(response.request().uri().toString(), response.status(), response.body()));
         this.response = response;
         this.uri = response.request().uri();
@@ -28,11 +28,11 @@ public final class HttpError extends ApiError {
     }
 
     public boolean isCaptchaTokenError() {
-        return this.response.body().contains("captcha_invalid");
+        return this.response.body().toString().contains("captcha_invalid");
     }
 
     public boolean isUnAuthError() {
-        return this.response.body().contains("unauthenticated");
+        return this.response.body().toString().contains("unauthenticated");
     }
 
 }

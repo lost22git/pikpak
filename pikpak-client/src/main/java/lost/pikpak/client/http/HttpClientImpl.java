@@ -56,9 +56,11 @@ public class HttpClientImpl implements HttpClient {
         return this.context;
     }
 
+
     @Override
-    public HttpResponse doSend(HttpRequest request) throws Exception {
-        var res = this.jdkHttpClient.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
-        return new HttpResponse(request, res.statusCode(), res.headers().map(), res.body());
+    public <T extends HttpResponse.Body<V, E>, V, E> HttpResponse<T, V, E> doSend(HttpRequest request,
+                                                                                  java.net.http.HttpResponse.BodyHandler<T> bodyHandler) throws Exception {
+        var res = this.jdkHttpClient.send(request, bodyHandler);
+        return new HttpResponse<>(request, res.statusCode(), res.headers().map(), res.body());
     }
 }
