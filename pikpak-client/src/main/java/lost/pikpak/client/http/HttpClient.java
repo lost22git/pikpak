@@ -7,12 +7,12 @@ import lost.pikpak.client.enums.HttpHeader;
 import lost.pikpak.client.error.HttpError;
 import lost.pikpak.client.error.InvalidCaptchaTokenError;
 import lost.pikpak.client.error.UnAuthError;
+import lost.pikpak.client.http.body.BodyAdapters;
 import lost.pikpak.client.util.Util;
 
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.http.HttpRequest;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,6 +24,8 @@ public interface HttpClient extends WithContext {
     static HttpClient create(Context context) {
         return new HttpClientImpl(context);
     }
+
+    BodyAdapters bodyAdapters();
 
     /**
      * NOTE: not recommended to call directly
@@ -97,18 +99,9 @@ public interface HttpClient extends WithContext {
     @SuppressWarnings("unchecked")
     default <T> T send(HttpRequest request,
                        Type bodyType) throws HttpError {
-        var res = send(request, responseInfo ->
-        {
-            int status = responseInfo.statusCode();
-            if (200 <= status && status < 300) {
-                var ups = (java.net.http.HttpResponse.BodySubscriber<T>) Util.jsonBodyHandle(bodyType).apply(responseInfo);
-                return HttpResponse.Body.okBodySubscriber(ups);
-            } else {
-                var ups = java.net.http.HttpResponse.BodySubscribers.ofString(StandardCharsets.UTF_8);
-                return HttpResponse.Body.errBodySubscriber(ups);
-            }
-        });
-        return res.body().value();
+        return (T) send(request, HttpResponse.Body.Handler.create(bodyAdapters(), bodyType))
+            .body()
+            .value();
     }
 
     default Map<String, String> commonHeaders() {

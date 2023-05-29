@@ -131,15 +131,18 @@ public final class Util {
     }
 
     public static <T> HttpResponse.BodyHandler<T> jsonBodyHandle(Type bodyType) {
-        return responseInfo -> HttpResponse.BodySubscribers.mapping(
+        return responseInfo -> jsonBodySubscriber(bodyType);
+    }
+
+    public static <T> HttpResponse.BodySubscriber<T> jsonBodySubscriber(Type bodyType) {
+        return HttpResponse.BodySubscribers.mapping(
             HttpResponse.BodySubscribers.ofString(StandardCharsets.UTF_8),
             bodyJson -> {
                 // replace value "" into null
                 // e.g. { "name": "" } -> { "name": null }
                 bodyJson = bodyJson.replace("\"\"", "null");
                 return Util.fromJson(bodyJson, bodyType);
-            }
-        );
+            });
     }
 
     /**

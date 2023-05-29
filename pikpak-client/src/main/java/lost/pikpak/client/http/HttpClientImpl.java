@@ -2,6 +2,7 @@ package lost.pikpak.client.http;
 
 import lost.pikpak.client.Config;
 import lost.pikpak.client.context.Context;
+import lost.pikpak.client.http.body.BodyAdapters;
 
 import java.net.InetSocketAddress;
 import java.net.ProxySelector;
@@ -16,11 +17,13 @@ public class HttpClientImpl implements HttpClient {
     private static final System.Logger LOG = System.getLogger(HttpClientImpl.class.getName());
     private final Context context;
     private final java.net.http.HttpClient jdkHttpClient;
+    private final BodyAdapters bodyAdapters;
 
     public HttpClientImpl(Context context) {
         Objects.requireNonNull(context);
         this.context = context;
         this.jdkHttpClient = createJdkHttpClient(context);
+        this.bodyAdapters = BodyAdapters.create();
     }
 
     private static void configureProxy(java.net.http.HttpClient.Builder builder,
@@ -56,6 +59,10 @@ public class HttpClientImpl implements HttpClient {
         return this.context;
     }
 
+    @Override
+    public BodyAdapters bodyAdapters() {
+        return this.bodyAdapters;
+    }
 
     @Override
     public <T extends HttpResponse.Body<V, E>, V, E> HttpResponse<T, V, E> doSend(HttpRequest request,

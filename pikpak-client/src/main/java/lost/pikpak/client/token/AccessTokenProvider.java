@@ -4,9 +4,12 @@ import lost.pikpak.client.context.Context;
 import lost.pikpak.client.context.WithContext;
 import lost.pikpak.client.error.RefreshTokenError;
 
+import java.lang.System.Logger.Level;
 import java.util.Optional;
 
 public interface AccessTokenProvider extends WithContext {
+    System.Logger LOG = System.getLogger(AccessTokenProvider.class.getName());
+
     static AccessTokenProvider create(Context context) {
         return new Impl(context);
     }
@@ -34,6 +37,10 @@ public interface AccessTokenProvider extends WithContext {
                     throw new RefreshTokenError(userConfig.username(), null);
                 }
                 if (token.isExpiredNow()) {
+                    LOG.log(Level.INFO,
+                        "access token was expired, try to obtain it from remote now, username={0}",
+                        userConfig.username());
+
                     this.context.authCmd().exec();
                     return userConfig.accessToken();
                 } else {

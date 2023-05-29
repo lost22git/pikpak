@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import static java.lang.System.Logger.Level.DEBUG;
+import static java.lang.System.Logger.Level.INFO;
 
 public class PikPakClient {
     private static final System.Logger LOG = System.getLogger(PikPakClient.class.getName());
@@ -28,15 +28,16 @@ public class PikPakClient {
     }
 
     private void loadContextsFromConfig() {
-        LOG.log(DEBUG, "loadContextsFromConfig start...");
+        LOG.log(INFO, "loadContextsFromConfig start...");
         for (var e : this.config.users().entrySet()) {
             var username = e.getKey();
             var user = e.getValue();
             if (user == null) continue;
+            LOG.log(INFO, "load context username={0}", username);
             var context = Context.create(this, user);
             this.contexts.put(username, context);
         }
-        LOG.log(DEBUG, "loadContextsFromConfig end...");
+        LOG.log(INFO, "loadContextsFromConfig end...");
     }
 
     public Config config() {
