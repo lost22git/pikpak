@@ -33,13 +33,13 @@ record-builder-processor = { module = "io.soabase.record-builder:record-builder-
 
 [bundles]
 jmh = [
-    "jmh-core",
-    "jmh-generator-annprocess",
+  "jmh-core",
+  "jmh-generator-annprocess",
 ]
 junit = [
-    "junit-jupiter-api",
-    "junit-jupiter-engine",
-    "junit-jupiter-params",
+  "junit-jupiter-api",
+  "junit-jupiter-engine",
+  "junit-jupiter-params",
 ]
 
 [plugins]
