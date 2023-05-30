@@ -9,7 +9,7 @@ import lost.pikpak.client.token.CaptchaTokenProvider;
 
 import java.util.Objects;
 
-public class ContextImpl implements Context {
+final class ContextImpl implements Context {
     private final PikPakClient pikpak;
     private final Config.User userConfig;
 
@@ -64,7 +64,7 @@ public class ContextImpl implements Context {
 
     @Override
     public AuthCmd authCmd() {
-        return new AuthCmd.Impl(this);
+        return AuthCmd.create(this);
     }
 
     @Override

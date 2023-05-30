@@ -36,11 +36,11 @@ public interface SignInCmd extends Cmd<Void>, WithContext, RequireCaptchaToken {
         }
     }
 
-    class Impl implements SignInCmd {
+    final class Impl implements SignInCmd {
         private final Context context;
         private final Exec exec;
 
-        public Impl(Context context) {
+        private Impl(Context context) {
             Objects.requireNonNull(context);
             this.context = context;
             this.exec = Exec.create();
@@ -81,7 +81,9 @@ public interface SignInCmd extends Cmd<Void>, WithContext, RequireCaptchaToken {
 
     }
 
-    class ExecImpl implements SignInCmd.Exec {
+    final class ExecImpl implements SignInCmd.Exec {
+        private ExecImpl() {
+        }
 
         @Override
         public SignInResult exec(SignInCmd cmd) throws ApiError {

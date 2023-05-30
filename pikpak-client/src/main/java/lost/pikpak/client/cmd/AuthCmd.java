@@ -29,11 +29,11 @@ public interface AuthCmd extends Cmd<Void>, WithContext {
         }
     }
 
-    class Impl implements AuthCmd {
+    final class Impl implements AuthCmd {
         private final Context context;
         private final Exec exec;
 
-        public Impl(Context context) {
+        private Impl(Context context) {
             Objects.requireNonNull(context);
             this.context = context;
             this.exec = Exec.create();
@@ -75,7 +75,9 @@ public interface AuthCmd extends Cmd<Void>, WithContext {
         }
     }
 
-    class ExecImpl implements Exec {
+    final class ExecImpl implements Exec {
+        private ExecImpl() {
+        }
 
         @Override
         public RefreshTokenResult exec(AuthCmd cmd) throws ApiError {

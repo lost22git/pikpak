@@ -8,8 +8,8 @@ import lost.pikpak.client.token.AccessTokenProvider;
 import lost.pikpak.client.token.CaptchaTokenProvider;
 
 public interface Context {
-    static ContextImpl create(PikPakClient pikpak,
-                              Config.User userConfig) {
+    static Context create(PikPakClient pikpak,
+                          Config.User userConfig) {
         return new ContextImpl(pikpak, userConfig);
     }
 

@@ -33,14 +33,14 @@ public interface FileDetailsCmd extends Cmd<FileDetailsResult>, WithContext, Req
         }
     }
 
-    class Impl implements FileDetailsCmd {
+    final class Impl implements FileDetailsCmd {
         private final Context context;
         private final Exec exec;
 
         private String fileId;
 
-        public Impl(Context context,
-                    String fileId) {
+        private Impl(Context context,
+                     String fileId) {
             Objects.requireNonNull(context);
             Objects.requireNonNull(fileId);
             this.context = context;
@@ -70,7 +70,9 @@ public interface FileDetailsCmd extends Cmd<FileDetailsResult>, WithContext, Req
         }
     }
 
-    class ExecImpl implements Exec {
+    final class ExecImpl implements Exec {
+        private ExecImpl() {
+        }
 
         @Override
         public FileDetailsResult exec(FileDetailsCmd cmd) throws ApiError {

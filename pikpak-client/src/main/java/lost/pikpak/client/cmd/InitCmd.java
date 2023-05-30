@@ -31,13 +31,13 @@ public interface InitCmd extends Cmd<InitInfoResult>, WithContext {
         }
     }
 
-    class Impl implements InitCmd {
+    final class Impl implements InitCmd {
         private final Context context;
         private final Exec exec;
         private String action;
 
-        public Impl(Context context,
-                    String action) {
+        private Impl(Context context,
+                     String action) {
             Objects.requireNonNull(context);
             Objects.requireNonNull(action);
             this.context = context;
@@ -67,7 +67,9 @@ public interface InitCmd extends Cmd<InitInfoResult>, WithContext {
         }
     }
 
-    class ExecImpl implements Exec {
+    final class ExecImpl implements Exec {
+        private ExecImpl() {
+        }
 
         @Override
         public InitInfoResult exec(InitCmd cmd) throws ApiError {

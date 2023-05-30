@@ -16,10 +16,10 @@ public interface AccessTokenProvider extends WithContext {
 
     Token.AccessToken obtainToken() throws RefreshTokenError;
 
-    class Impl implements AccessTokenProvider {
+    final class Impl implements AccessTokenProvider {
         private final Context context;
 
-        public Impl(Context context) {
+        private Impl(Context context) {
             this.context = context;
         }
 

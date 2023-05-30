@@ -22,11 +22,11 @@ public interface CaptchaTokenProvider extends WithContext, AutoCloseable {
 
     Token.CaptchaToken obtainToken(String action) throws ObtainCaptchaTokenError;
 
-    class Impl implements CaptchaTokenProvider {
+    final class Impl implements CaptchaTokenProvider {
         private final Context context;
         private final Cache<String, Token.CaptchaToken> cache;
 
-        public Impl(Context context) {
+        private Impl(Context context) {
             this.context = context;
             this.cache = Caffeine.newBuilder()
                 .expireAfter(new Expiry<String, Token.CaptchaToken>() {

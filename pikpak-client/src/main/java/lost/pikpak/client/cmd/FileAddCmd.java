@@ -58,7 +58,7 @@ public interface FileAddCmd extends Cmd<FileAddResult>, WithContext, RequireCapt
         }
     }
 
-    class Impl implements FileAddCmd {
+    final class Impl implements FileAddCmd {
         private final Context context;
         private final Exec exec;
         private FolderType folderType;
@@ -68,7 +68,7 @@ public interface FileAddCmd extends Cmd<FileAddResult>, WithContext, RequireCapt
         private String url;
 
 
-        public Impl(Context context) {
+        private Impl(Context context) {
             Objects.requireNonNull(context);
             this.context = context;
             this.exec = Exec.create();
@@ -141,7 +141,9 @@ public interface FileAddCmd extends Cmd<FileAddResult>, WithContext, RequireCapt
 
     }
 
-    class ExecImpl implements Exec {
+    final class ExecImpl implements Exec {
+        private ExecImpl() {
+        }
 
         @Override
         public FileAddResult exec(FileAddCmd cmd) throws ApiError {

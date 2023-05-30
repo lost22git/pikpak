@@ -58,7 +58,7 @@ public interface FileListCmd extends Cmd<FileListResult>, WithContext, RequireCa
         }
     }
 
-    class Impl implements FileListCmd {
+    final class Impl implements FileListCmd {
         private final Context context;
         private final Exec exec;
 
@@ -69,7 +69,7 @@ public interface FileListCmd extends Cmd<FileListResult>, WithContext, RequireCa
         private boolean withAudit;
         private SortOrder sortOrder;
 
-        public Impl(Context context) {
+        private Impl(Context context) {
             Objects.requireNonNull(context);
             this.context = context;
             this.exec = Exec.create();
@@ -152,7 +152,9 @@ public interface FileListCmd extends Cmd<FileListResult>, WithContext, RequireCa
         }
     }
 
-    class ExecImpl implements Exec {
+    final class ExecImpl implements Exec {
+        private ExecImpl() {
+        }
 
         @Override
         public FileListResult exec(FileListCmd cmd) throws ApiError {

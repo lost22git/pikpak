@@ -13,7 +13,7 @@ import java.util.concurrent.Executors;
 import static java.lang.System.Logger.Level.DEBUG;
 import static java.lang.System.Logger.Level.WARNING;
 
-public class HttpClientImpl implements HttpClient {
+final class HttpClientImpl implements HttpClient {
     private static final System.Logger LOG = System.getLogger(HttpClientImpl.class.getName());
     private final Context context;
     private final java.net.http.HttpClient jdkHttpClient;
