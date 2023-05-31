@@ -66,9 +66,11 @@ public interface CaptchaTokenProvider extends WithContext, AutoCloseable {
             try {
                 var token = this.cache.getIfPresent(action);
                 if (token == null || token.isExpiredNow()) {
-                    LOG.log(Level.INFO,
-                        "obtain token from cache was null or expired, try to obtain it from remote now, action={0}",
-                        action);
+                    if (LOG.isLoggable(Level.INFO)) {
+                        LOG.log(Level.INFO,
+                            "obtain token from cache was null or expired, try to obtain it from remote now, action={0}",
+                            action);
+                    }
                     var startTime = OffsetDateTime.now();
                     var initInfoResult = this.context.initCmd(action).exec();
                     // TODO 更新 captchaToken 操作是否放在 InitInfo.get(...) 内部 ?
@@ -78,7 +80,9 @@ public interface CaptchaTokenProvider extends WithContext, AutoCloseable {
                     this.cache.put(action, newToken);
                     return newToken;
                 } else {
-                    LOG.log(Level.DEBUG, "obtain token from cache, action={0}, token={1}", action, token);
+                    if (LOG.isLoggable(Level.DEBUG)) {
+                        LOG.log(Level.DEBUG, "obtain token from cache, action={0}, token={1}", action, token);
+                    }
                     return token;
                 }
             } catch (Exception e) {

@@ -38,10 +38,4 @@ public class FileListCmdTest {
         System.out.println(list);
     }
 
-
-    @Test
-    void add() throws Exception {
-
-    }
-
 }

@@ -37,9 +37,11 @@ public interface AccessTokenProvider extends WithContext {
                     throw new RefreshTokenError(userConfig.username(), null);
                 }
                 if (token.isExpiredNow()) {
-                    LOG.log(Level.INFO,
-                        "access token was expired, try to obtain it from remote now, username={0}",
-                        userConfig.username());
+                    if (LOG.isLoggable(Level.INFO)) {
+                        LOG.log(Level.INFO,
+                            "access token was expired, try to obtain it from remote now, username={0}",
+                            userConfig.username());
+                    }
 
                     this.context.authCmd().exec();
                     return userConfig.accessToken();

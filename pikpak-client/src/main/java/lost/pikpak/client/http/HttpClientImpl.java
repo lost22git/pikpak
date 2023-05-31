@@ -30,7 +30,9 @@ final class HttpClientImpl implements HttpClient {
                                        Config.User userConfig) {
         var proxy = userConfig.data().extract(Config.Data::proxy);
         if (proxy.isPresent()) {
-            LOG.log(DEBUG, "configuring proxy={0} for http client", proxy.get().toString());
+            if (LOG.isLoggable(DEBUG)) {
+                LOG.log(DEBUG, "configuring proxy={0} for http client", proxy.get().toString());
+            }
             var host = proxy.get().getHost();
             var port = proxy.get().getPort();
             try {

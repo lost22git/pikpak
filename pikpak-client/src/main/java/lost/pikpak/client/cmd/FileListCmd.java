@@ -120,7 +120,7 @@ public interface FileListCmd extends Cmd<FileListResult>, WithContext, RequireCa
 
         @Override
         public String parentId() {
-            return this.pageToken;
+            return this.parentId;
         }
 
         @Override

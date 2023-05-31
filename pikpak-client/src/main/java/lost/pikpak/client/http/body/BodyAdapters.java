@@ -1,5 +1,9 @@
 package lost.pikpak.client.http.body;
 
+import lost.pikpak.client.http.Params;
+import lost.pikpak.client.http.body.multipart.Multipart;
+import lost.pikpak.client.http.body.multipart.MultipartBodyAdapter;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -11,7 +15,10 @@ public class BodyAdapters {
     public static BodyAdapters create() {
         return new BodyAdapters()
             .register(TextBodyAdapter.create())
-            .register(JsonBodyAdapter.create());
+            .register(JsonBodyAdapter.create())
+            .register(FormParamBodyAdapter.create())
+            .register(MultipartBodyAdapter.create())
+            ;
     }
 
     public <T> BodyAdapters register(BodyAdapter<T> adapter) {
@@ -44,7 +51,6 @@ public class BodyAdapters {
             .get();
     }
 
-    // TODO select by MediaType ?
     @SuppressWarnings({"OptionalGetWithoutIsPresent", "unchecked"})
     public <T> BodyAdapter<T> json() {
         return (BodyAdapter<T>) bodyAdapterStream()
@@ -53,5 +59,19 @@ public class BodyAdapters {
             .get();
     }
 
+    @SuppressWarnings({"OptionalGetWithoutIsPresent", "unchecked"})
+    public BodyAdapter<Params> formParam() {
+        return (BodyAdapter<Params>) bodyAdapterStream()
+            .filter(FormParamBodyAdapter.class::isInstance)
+            .findFirst()
+            .get();
+    }
 
+    @SuppressWarnings({"OptionalGetWithoutIsPresent", "unchecked"})
+    public BodyAdapter<Multipart> multipart() {
+        return (BodyAdapter<Multipart>) bodyAdapterStream()
+            .filter(MultipartBodyAdapter.class::isInstance)
+            .findFirst()
+            .get();
+    }
 }

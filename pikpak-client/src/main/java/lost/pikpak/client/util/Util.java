@@ -9,10 +9,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow;
 import java.util.logging.LogManager;
@@ -29,6 +26,15 @@ public final class Util {
     }
 
     private Util() {
+    }
+
+    public static String quote(String data) {
+        return "\"" + escapeQuote(data) + "\"";
+    }
+
+    public static String escapeQuote(String data) {
+        Objects.requireNonNull(data);
+        return data.replace("\"", "\\\"");
     }
 
     @SuppressWarnings("unchecked")
@@ -154,7 +160,7 @@ public final class Util {
     public static String collectIntoString(Flow.Publisher<ByteBuffer> publisher) {
         return new Flow.Subscriber<ByteBuffer>() {
             private final CompletableFuture<List<ByteBuffer>> result = new CompletableFuture<>();
-            private List<ByteBuffer> buffers = new ArrayList<>();
+            private final List<ByteBuffer> buffers = new ArrayList<>();
             private Flow.Subscription subscription;
 
             public String collect(Flow.Publisher<ByteBuffer> pub) {
@@ -240,5 +246,4 @@ public final class Util {
             }
         }
     }
-
 }

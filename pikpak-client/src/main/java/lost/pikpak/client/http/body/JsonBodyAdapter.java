@@ -6,29 +6,35 @@ import java.lang.reflect.Type;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-public class JsonBodyAdapter<T> implements BodyAdapter<T> {
+public final class JsonBodyAdapter<T> implements BodyAdapter<T> {
+    private final Reader<T> reader = new Reader<>();
+    private final Writer<T> writer = new Writer<>();
+
+    private JsonBodyAdapter() {
+    }
+
     public static <T> JsonBodyAdapter<T> create() {
         return new JsonBodyAdapter<>();
     }
 
     @Override
     public BodyReader<T> reader() {
-        return new Reader<>();
+        return this.reader;
     }
 
     @Override
     public BodyWriter<T> writer() {
-        return new Writer<>();
+        return this.writer;
     }
 
-    private static class Reader<T> implements BodyReader<T> {
+    private static final class Reader<T> implements BodyReader<T> {
         @Override
         public HttpResponse.BodySubscriber<T> read(Type type) {
             return Util.jsonBodySubscriber(type);
         }
     }
 
-    private static class Writer<T> implements BodyWriter<T> {
+    private static final class Writer<T> implements BodyWriter<T> {
 
         @Override
         public HttpRequest.BodyPublisher write(T data) {
