@@ -53,6 +53,7 @@ subprojects {
     ]
     useJUnitPlatform()
   }
+
 }
 
 apply from: "./gradle_scripts/version_catalog_update.gradle"

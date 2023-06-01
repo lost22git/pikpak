@@ -11,6 +11,7 @@ plugin-jmh = "0.6.6"
 plugin-jmhReport = "0.9.0"
 plugin-nativeimage = "0.9.16"
 plugin-shadow = "7.1.2"
+plugin-spotbug = "5.0.14"
 plugin-version-catalog-update = "0.8.0"
 plugin-versions = "0.46.0"
 record-builder = "36"
@@ -47,5 +48,6 @@ jmh = { id = "me.champeau.jmh", version.ref = "plugin-jmh" }
 jmhReport = { id = "io.morethan.jmhreport", version.ref = "plugin-jmhReport" }
 nativeimage = { id = "org.graalvm.buildtools.native", version.ref = "plugin-nativeimage" }
 shadow = { id = "com.github.johnrengelman.shadow", version.ref = "plugin-shadow" }
+spotbug = { id = "com.github.spotbugs", version.ref = "plugin-spotbug" }
 version-catalog-update = { id = "nl.littlerobots.version-catalog-update", version.ref = "plugin-version-catalog-update" }
 versions = { id = "com.github.ben-manes.versions", version.ref = "plugin-versions" }
