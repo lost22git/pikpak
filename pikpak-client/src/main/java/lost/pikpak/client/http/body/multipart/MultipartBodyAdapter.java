@@ -44,7 +44,7 @@ public final class MultipartBodyAdapter implements BodyAdapter<Multipart> {
 
             for (Part part : data.parts()) {
                 // boundary
-                var boundary = HttpRequest.BodyPublishers.ofString(data.boundary());
+                var boundary = HttpRequest.BodyPublishers.ofString(data.boundary() + "\r\n");
                 list.add(boundary);
 
                 // headers
@@ -59,6 +59,7 @@ public final class MultipartBodyAdapter implements BodyAdapter<Multipart> {
 
                 // body
                 list.add(part.body());
+                list.add(HttpRequest.BodyPublishers.ofString("\r\n"));
             }
             var boundaryEnd = HttpRequest.BodyPublishers.ofString(data.boundaryEnd());
             list.add(boundaryEnd);
@@ -66,6 +67,4 @@ public final class MultipartBodyAdapter implements BodyAdapter<Multipart> {
             return HttpRequest.BodyPublishers.concat(list.toArray(HttpRequest.BodyPublisher[]::new));
         }
     }
-
-
 }
