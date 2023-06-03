@@ -2,8 +2,14 @@ package lost.pikpak.client.http.body;
 
 import java.lang.reflect.Type;
 import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublisher;
+import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodySubscriber;
+import java.net.http.HttpResponse.BodySubscribers;
 import java.nio.charset.StandardCharsets;
+
+import static java.nio.charset.StandardCharsets.*;
 
 public final class TextBodyAdapter implements BodyAdapter<String> {
     private final Reader reader = new Reader();
@@ -28,15 +34,15 @@ public final class TextBodyAdapter implements BodyAdapter<String> {
 
     private static final class Reader implements BodyReader<String> {
         @Override
-        public HttpResponse.BodySubscriber<String> read(Type type) {
-            return HttpResponse.BodySubscribers.ofString(StandardCharsets.UTF_8);
+        public BodySubscriber<String> read(Type type) {
+            return BodySubscribers.ofString(UTF_8);
         }
     }
 
     private static final class Writer implements BodyWriter<String> {
         @Override
-        public HttpRequest.BodyPublisher write(String data) {
-            return HttpRequest.BodyPublishers.ofString(data);
+        public BodyPublisher write(String data) {
+            return BodyPublishers.ofString(data);
         }
     }
 }

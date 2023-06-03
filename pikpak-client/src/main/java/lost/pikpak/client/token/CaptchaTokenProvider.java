@@ -8,9 +8,11 @@ import lost.pikpak.client.context.WithContext;
 import lost.pikpak.client.error.ObtainCaptchaTokenError;
 import org.checkerframework.checker.index.qual.NonNegative;
 
-import java.lang.System.Logger.Level;
 import java.time.OffsetDateTime;
 import java.util.concurrent.TimeUnit;
+
+import static java.lang.System.Logger.Level.DEBUG;
+import static java.lang.System.Logger.Level.INFO;
 
 public interface CaptchaTokenProvider extends WithContext, AutoCloseable {
 
@@ -66,8 +68,8 @@ public interface CaptchaTokenProvider extends WithContext, AutoCloseable {
             try {
                 var token = this.cache.getIfPresent(action);
                 if (token == null || token.isExpiredNow()) {
-                    if (LOG.isLoggable(Level.INFO)) {
-                        LOG.log(Level.INFO,
+                    if (LOG.isLoggable(INFO)) {
+                        LOG.log(INFO,
                             "obtain token from cache was null or expired, try to obtain it from remote now, action={0}",
                             action);
                     }
@@ -75,13 +77,18 @@ public interface CaptchaTokenProvider extends WithContext, AutoCloseable {
                     var initInfoResult = this.context.initCmd(action).exec();
                     // TODO 更新 captchaToken 操作是否放在 InitInfo.get(...) 内部 ?
                     // 提前 60s 失效
-                    var expiresAt = startTime.plusSeconds(initInfoResult.expiresIn()).minusSeconds(60);
-                    var newToken = new Token.CaptchaToken(initInfoResult.captchaToken(), expiresAt);
+                    var expiresAt = startTime
+                        .plusSeconds(initInfoResult.expiresIn())
+                        .minusSeconds(60);
+                    var newToken = new Token.CaptchaToken(
+                        initInfoResult.captchaToken(),
+                        expiresAt
+                    );
                     this.cache.put(action, newToken);
                     return newToken;
                 } else {
-                    if (LOG.isLoggable(Level.DEBUG)) {
-                        LOG.log(Level.DEBUG, "obtain token from cache, action={0}, token={1}", action, token);
+                    if (LOG.isLoggable(DEBUG)) {
+                        LOG.log(DEBUG, "obtain token from cache, action={0}, token={1}", action, token);
                     }
                     return token;
                 }

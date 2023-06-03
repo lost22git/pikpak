@@ -13,6 +13,7 @@ import lost.pikpak.client.util.Util;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.http.HttpRequest;
+import java.net.http.HttpResponse.BodyHandler;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -55,7 +56,10 @@ public interface HttpClient extends WithContext {
                 }
             });
             sb.append(">> Body: ").append("\n")
-                .append(request.bodyPublisher().map(Util::collectIntoString).orElse(""))
+                .append(request.bodyPublisher()
+                    .map(Util::collectIntoString)
+                    .orElse("")
+                )
                 .append("\n");
             LOG.log(DEBUG, sb.toString());
         }
@@ -70,7 +74,7 @@ public interface HttpClient extends WithContext {
      * <p>
      * Better choices:
      * <p>
-     * 1) {@link HttpClient#send(HttpRequest, java.net.http.HttpResponse.BodyHandler)}
+     * 1) {@link HttpClient#send(HttpRequest, BodyHandler)}
      * <p>
      * 2) {@link HttpClient#send(HttpRequest, Type)}
      *
@@ -83,7 +87,7 @@ public interface HttpClient extends WithContext {
      * @throws Exception the exception
      */
     <T extends HttpResponse.Body<V, E>, V, E> HttpResponse<T, V, E> doSend(HttpRequest request,
-                                                                           java.net.http.HttpResponse.BodyHandler<T> bodyHandler) throws Exception;
+                                                                           BodyHandler<T> bodyHandler) throws Exception;
 
     /**
      * Send request and return ok response, throw {@link HttpError} if we get error response or any exception occurred
@@ -97,16 +101,18 @@ public interface HttpClient extends WithContext {
      * @throws HttpError the error if we get error response ( {@link HttpResponse} with {@link lost.pikpak.client.http.HttpResponse.ErrBody} )
      */
     default <T extends HttpResponse.Body<V, E>, V, E> HttpResponse<T, V, E> send(HttpRequest request,
-                                                                                 java.net.http.HttpResponse.BodyHandler<T> bodyHandler) throws HttpError {
+                                                                                 BodyHandler<T> bodyHandler) throws HttpError {
 
         // TODO replace these into interceptors ?
 
         var uri = request.uri();
         var requestId = Util.genRequestId();
+
         logRequest(requestId, request);
         try {
             var res = this.doSend(request, bodyHandler);
             logResponse(requestId, res);
+
             // throw http error if body is ErrBody
             if (res.body().isErr()) {
                 var e = new HttpError(res);
@@ -117,6 +123,7 @@ public interface HttpClient extends WithContext {
                 }
                 throw e;
             }
+
             return res;
         } catch (Exception e) {
             throw HttpError.wrap(uri, e);
@@ -135,9 +142,10 @@ public interface HttpClient extends WithContext {
     @SuppressWarnings("unchecked")
     default <T> T send(HttpRequest request,
                        Type bodyType) throws HttpError {
-        return (T) send(request, HttpResponse.Body.Handler.create(bodyAdapters(), bodyType))
-            .body()
-            .value();
+        return (T) send(
+            request,
+            HttpResponse.Body.Handler.create(bodyAdapters(), bodyType)
+        ).body().value();
     }
 
     default Map<String, String> commonHeaders() {

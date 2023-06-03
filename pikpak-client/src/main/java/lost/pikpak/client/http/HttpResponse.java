@@ -4,6 +4,10 @@ import lost.pikpak.client.http.body.BodyAdapters;
 
 import java.lang.reflect.Type;
 import java.net.http.HttpRequest;
+import java.net.http.HttpResponse.BodyHandler;
+import java.net.http.HttpResponse.BodySubscriber;
+import java.net.http.HttpResponse.BodySubscribers;
+import java.net.http.HttpResponse.ResponseInfo;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -34,12 +38,12 @@ public record HttpResponse<T extends HttpResponse.Body<V, E>, V, E>(
 
 
     public sealed interface Body<V, E> {
-        static <V, E> java.net.http.HttpResponse.BodySubscriber<Body<V, E>> okBodySubscriber(java.net.http.HttpResponse.BodySubscriber<V> ups) {
-            return java.net.http.HttpResponse.BodySubscribers.mapping(ups, Body::createOk);
+        static <V, E> BodySubscriber<Body<V, E>> okBodySubscriber(BodySubscriber<V> ups) {
+            return BodySubscribers.mapping(ups, Body::createOk);
         }
 
-        static <V, E> java.net.http.HttpResponse.BodySubscriber<Body<V, E>> errBodySubscriber(java.net.http.HttpResponse.BodySubscriber<E> ups) {
-            return java.net.http.HttpResponse.BodySubscribers.mapping(ups, Body::createErr);
+        static <V, E> BodySubscriber<Body<V, E>> errBodySubscriber(BodySubscriber<E> ups) {
+            return BodySubscribers.mapping(ups, Body::createErr);
         }
 
         static <V, E> OkBody<V, E> createOk(V value) {
@@ -62,7 +66,7 @@ public record HttpResponse<T extends HttpResponse.Body<V, E>, V, E>(
             return !isOk();
         }
 
-        class Handler<V> implements java.net.http.HttpResponse.BodyHandler<Body<V, String>> {
+        class Handler<V> implements BodyHandler<Body<V, String>> {
             private final BodyAdapters bodyAdapters;
             private final Type type;
 
@@ -79,10 +83,10 @@ public record HttpResponse<T extends HttpResponse.Body<V, E>, V, E>(
 
             @SuppressWarnings("unchecked")
             @Override
-            public java.net.http.HttpResponse.BodySubscriber<Body<V, String>> apply(java.net.http.HttpResponse.ResponseInfo responseInfo) {
+            public BodySubscriber<Body<V, String>> apply(ResponseInfo responseInfo) {
                 int status = responseInfo.statusCode();
                 if (200 <= status && status < 300) {
-                    var ups = (java.net.http.HttpResponse.BodySubscriber<V>) bodyAdapters.json().reader().read(type);
+                    var ups = (BodySubscriber<V>) bodyAdapters.json().reader().read(type);
                     return Body.okBodySubscriber(ups);
                 } else {
                     var ups = bodyAdapters.text().reader().read(null);

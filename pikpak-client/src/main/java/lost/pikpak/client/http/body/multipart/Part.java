@@ -2,7 +2,8 @@ package lost.pikpak.client.http.body.multipart;
 
 import lost.pikpak.client.util.Util;
 
-import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublisher;
+import java.net.http.HttpRequest.BodyPublishers;
 import java.util.*;
 
 public interface Part {
@@ -21,7 +22,7 @@ public interface Part {
 
     Map<String, String> headers();
 
-    HttpRequest.BodyPublisher body();
+    BodyPublisher body();
 
     default String contentDisposition() {
         var sb = new StringBuilder();
@@ -32,10 +33,10 @@ public interface Part {
         return sb.toString();
     }
 
-    default HttpRequest.BodyPublisher bodyPublisher(String boundaryStart) {
-        var list = new ArrayList<HttpRequest.BodyPublisher>(4);
+    default BodyPublisher bodyPublisher(String boundaryStart) {
+        var list = new ArrayList<BodyPublisher>(4);
         // boundary
-        var boundary = HttpRequest.BodyPublishers.ofString(boundaryStart + EOL);
+        var boundary = BodyPublishers.ofString(boundaryStart + EOL);
         list.add(boundary);
 
         // headers
@@ -45,15 +46,15 @@ public interface Part {
             sb.append(EOL);
         });
         sb.append(EOL);
-        var headers = HttpRequest.BodyPublishers.ofString(sb.toString());
+        var headers = BodyPublishers.ofString(sb.toString());
         list.add(headers);
 
         // body
         list.add(body());
         //
-        list.add(HttpRequest.BodyPublishers.ofString(EOL));
+        list.add(BodyPublishers.ofString(EOL));
 
-        return HttpRequest.BodyPublishers.concat(list.toArray(HttpRequest.BodyPublisher[]::new));
+        return BodyPublishers.concat(list.toArray(BodyPublisher[]::new));
     }
 
     final class Impl implements Part {
@@ -61,13 +62,13 @@ public interface Part {
         private final String filename;
         private final String contentType;
         private final Map<String, String> headers;
-        private final HttpRequest.BodyPublisher body;
+        private final BodyPublisher body;
 
         private Impl(String name,
                      String filename,
                      String contentType,
                      Map<String, String> headers,
-                     HttpRequest.BodyPublisher body) {
+                     BodyPublisher body) {
             Objects.requireNonNull(name);
             Objects.requireNonNull(contentType);
             Objects.requireNonNull(body);
@@ -105,7 +106,7 @@ public interface Part {
             return this.headers;
         }
 
-        public HttpRequest.BodyPublisher body() {
+        public BodyPublisher body() {
             return this.body;
         }
     }
@@ -115,7 +116,7 @@ public interface Part {
         private String name;
         private String filename;
         private String contentType;
-        private HttpRequest.BodyPublisher body;
+        private BodyPublisher body;
 
         private Builder(String name) {
             Objects.requireNonNull(name);
@@ -165,13 +166,13 @@ public interface Part {
             return this.headers;
         }
 
-        public Builder body(HttpRequest.BodyPublisher body) {
+        public Builder body(BodyPublisher body) {
             Objects.requireNonNull(body);
             this.body = body;
             return this;
         }
 
-        public HttpRequest.BodyPublisher body() {
+        public BodyPublisher body() {
             return this.body;
         }
 

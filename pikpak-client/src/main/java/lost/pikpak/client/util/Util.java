@@ -5,8 +5,11 @@ import io.avaje.jsonb.Jsonb;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.net.URL;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.net.http.HttpRequest.BodyPublisher;
+import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse.BodyHandler;
+import java.net.http.HttpResponse.BodySubscriber;
+import java.net.http.HttpResponse.BodySubscribers;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -132,17 +135,17 @@ public final class Util {
         return dropJsonExtraWhitespace(dropJsonSingleLineComment(json));
     }
 
-    public static HttpRequest.BodyPublisher jsonBodyPublisher(Object obj) {
-        return HttpRequest.BodyPublishers.ofByteArray(toJsonBytes(obj));
+    public static BodyPublisher jsonBodyPublisher(Object obj) {
+        return BodyPublishers.ofByteArray(toJsonBytes(obj));
     }
 
-    public static <T> HttpResponse.BodyHandler<T> jsonBodyHandle(Type bodyType) {
+    public static <T> BodyHandler<T> jsonBodyHandle(Type bodyType) {
         return responseInfo -> jsonBodySubscriber(bodyType);
     }
 
-    public static <T> HttpResponse.BodySubscriber<T> jsonBodySubscriber(Type bodyType) {
-        return HttpResponse.BodySubscribers.mapping(
-            HttpResponse.BodySubscribers.ofString(StandardCharsets.UTF_8),
+    public static <T> BodySubscriber<T> jsonBodySubscriber(Type bodyType) {
+        return BodySubscribers.mapping(
+            BodySubscribers.ofString(StandardCharsets.UTF_8),
             bodyJson -> {
                 // replace value "" into null
                 // e.g. { "name": "" } -> { "name": null }

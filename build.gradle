@@ -33,7 +33,7 @@ subprojects {
     testImplementation(libs.easyrandom.core)
   }
 
-  tasks.withType(JavaCompile) {
+  tasks.withType(JavaCompile).configureEach {
     options.encoding = "UTF-8"
     options.compilerArgs += [
       "-parameters",

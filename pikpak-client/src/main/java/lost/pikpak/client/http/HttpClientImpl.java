@@ -7,6 +7,7 @@ import lost.pikpak.client.http.body.BodyAdapters;
 import java.net.InetSocketAddress;
 import java.net.ProxySelector;
 import java.net.http.HttpRequest;
+import java.net.http.HttpResponse.BodyHandler;
 import java.util.Objects;
 import java.util.concurrent.Executors;
 
@@ -68,8 +69,13 @@ final class HttpClientImpl implements HttpClient {
 
     @Override
     public <T extends HttpResponse.Body<V, E>, V, E> HttpResponse<T, V, E> doSend(HttpRequest request,
-                                                                                  java.net.http.HttpResponse.BodyHandler<T> bodyHandler) throws Exception {
+                                                                                  BodyHandler<T> bodyHandler) throws Exception {
         var res = this.jdkHttpClient.send(request, bodyHandler);
-        return new HttpResponse<>(request, res.statusCode(), res.headers().map(), res.body());
+        return new HttpResponse<>(
+            request,
+            res.statusCode(),
+            res.headers().map(),
+            res.body()
+        );
     }
 }

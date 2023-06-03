@@ -49,10 +49,12 @@ public interface AccessTokenProvider extends WithContext {
                     return token;
                 }
             } catch (Exception e) {
-                throw RefreshTokenError.wrap(userConfig.username(),
+                throw RefreshTokenError.wrap(
+                    userConfig.username(),
                     Optional.ofNullable(userConfig.accessToken())
-                        .map(Token.AccessToken::refreshToken).orElse(null)
-                    , e);
+                        .map(Token.AccessToken::refreshToken)
+                        .orElse(null),
+                    e);
             }
         }
     }

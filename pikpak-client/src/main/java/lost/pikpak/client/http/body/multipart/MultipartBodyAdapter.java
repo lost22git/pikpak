@@ -3,7 +3,8 @@ package lost.pikpak.client.http.body.multipart;
 import lost.pikpak.client.http.body.BodyAdapter;
 
 import java.lang.reflect.Type;
-import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublisher;
+import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
@@ -59,20 +60,20 @@ public final class MultipartBodyAdapter implements BodyAdapter<Multipart> {
 
     private static final class Writer implements BodyWriter<Multipart> {
         @Override
-        public HttpRequest.BodyPublisher write(Multipart data) {
+        public BodyPublisher write(Multipart data) {
             var boundaryStart = data.boundaryStart();
             var boundaryEnd = data.boundaryEnd();
             var partCount = data.parts().size();
 
-            List<HttpRequest.BodyPublisher> list = new ArrayList<>(partCount + 1);
+            List<BodyPublisher> list = new ArrayList<>(partCount + 1);
             // parts
             for (Part part : data.parts()) {
                 list.add(part.bodyPublisher(boundaryStart));
             }
             // end
-            list.add(HttpRequest.BodyPublishers.ofString(boundaryEnd + Part.EOL));
+            list.add(BodyPublishers.ofString(boundaryEnd + Part.EOL));
 
-            return HttpRequest.BodyPublishers.concat(list.toArray(HttpRequest.BodyPublisher[]::new));
+            return BodyPublishers.concat(list.toArray(BodyPublisher[]::new));
         }
     }
 }

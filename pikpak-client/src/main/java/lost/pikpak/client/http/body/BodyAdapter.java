@@ -2,7 +2,9 @@ package lost.pikpak.client.http.body;
 
 import java.lang.reflect.Type;
 import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodySubscriber;
 
 public interface BodyAdapter<T> {
 
@@ -11,10 +13,10 @@ public interface BodyAdapter<T> {
     BodyWriter<T> writer();
 
     interface BodyReader<T> {
-        HttpResponse.BodySubscriber<T> read(Type type);
+        BodySubscriber<T> read(Type type);
     }
 
     interface BodyWriter<T> {
-        HttpRequest.BodyPublisher write(T data);
+        BodyPublisher write(T data);
     }
 }

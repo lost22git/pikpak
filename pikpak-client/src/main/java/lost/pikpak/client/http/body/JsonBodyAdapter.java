@@ -5,6 +5,7 @@ import lost.pikpak.client.util.Util;
 import java.lang.reflect.Type;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodySubscriber;
 
 public final class JsonBodyAdapter<T> implements BodyAdapter<T> {
     private final Reader<T> reader = new Reader<>();
@@ -29,7 +30,7 @@ public final class JsonBodyAdapter<T> implements BodyAdapter<T> {
 
     private static final class Reader<T> implements BodyReader<T> {
         @Override
-        public HttpResponse.BodySubscriber<T> read(Type type) {
+        public BodySubscriber<T> read(Type type) {
             return Util.jsonBodySubscriber(type);
         }
     }

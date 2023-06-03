@@ -4,7 +4,11 @@ import lost.pikpak.client.http.Params;
 
 import java.lang.reflect.Type;
 import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublisher;
+import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodySubscriber;
+import java.net.http.HttpResponse.BodySubscribers;
 import java.nio.charset.StandardCharsets;
 
 public final class FormParamBodyAdapter implements BodyAdapter<Params> {
@@ -33,9 +37,9 @@ public final class FormParamBodyAdapter implements BodyAdapter<Params> {
     private static final class Reader implements BodyReader<Params> {
 
         @Override
-        public HttpResponse.BodySubscriber<Params> read(Type type) {
-            return HttpResponse.BodySubscribers.mapping(
-                HttpResponse.BodySubscribers.ofString(StandardCharsets.UTF_8),
+        public BodySubscriber<Params> read(Type type) {
+            return BodySubscribers.mapping(
+                BodySubscribers.ofString(StandardCharsets.UTF_8),
                 Params::parse
             );
         }
@@ -45,8 +49,8 @@ public final class FormParamBodyAdapter implements BodyAdapter<Params> {
     private static final class Writer implements BodyWriter<Params> {
 
         @Override
-        public HttpRequest.BodyPublisher write(Params data) {
-            return HttpRequest.BodyPublishers.ofString(
+        public BodyPublisher write(Params data) {
+            return BodyPublishers.ofString(
                 data.format()
             );
         }

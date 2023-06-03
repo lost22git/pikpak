@@ -223,7 +223,8 @@ public record Config(
          * @return
          */
         public <T> Optional<T> extract(Function<Data, T> extractFn) {
-            return Optional.ofNullable(extractFn.apply(this)).or(() -> parent().flatMap(e -> e.extract(extractFn)));
+            return Optional.ofNullable(extractFn.apply(this))
+                .or(() -> parent().flatMap(e -> e.extract(extractFn)));
         }
 
         public URI proxy() {

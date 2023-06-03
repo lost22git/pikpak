@@ -2,10 +2,11 @@ package lost.pikpak.client.http;
 
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public interface Params {
     Pattern P = Pattern.compile("([^=]+)=([^&]+)&?");
@@ -15,7 +16,7 @@ public interface Params {
     }
 
     static Params parse(String str) {
-        var decodedStr = URLDecoder.decode(str, StandardCharsets.UTF_8);
+        var decodedStr = URLDecoder.decode(str, UTF_8);
         var matcher = P.matcher(decodedStr);
         var builder = Params.builder();
         for (; matcher.find(); ) {
@@ -40,7 +41,7 @@ public interface Params {
             for (var value : value(name)) {
                 sb.append(name)
                     .append("=")
-                    .append(URLEncoder.encode(value, StandardCharsets.UTF_8))
+                    .append(URLEncoder.encode(value, UTF_8))
                     .append("&");
             }
         }
@@ -57,8 +58,13 @@ public interface Params {
             } else {
                 // copy immutables
                 this.map = map.entrySet().stream()
-                    .collect(Collectors.toUnmodifiableMap(
-                        Map.Entry::getKey, e -> List.copyOf(e.getValue()), (v1, v2) -> v1));
+                    .collect(
+                        Collectors.toUnmodifiableMap(
+                            Map.Entry::getKey,
+                            e -> List.copyOf(e.getValue()),
+                            (v1, v2) -> v1
+                        )
+                    );
             }
         }
 
