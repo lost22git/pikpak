@@ -4,7 +4,6 @@ import lost.pikpak.client.util.Util;
 
 import java.lang.reflect.Type;
 import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodySubscriber;
 
 public final class JsonBodyAdapter<T> implements BodyAdapter<T> {
