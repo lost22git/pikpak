@@ -246,4 +246,12 @@ public final class Util {
             }
         }
     }
+
+    /**
+     * see {@code jdk.internal.net.http.common.Log}
+     */
+    public static void configureJdkHttpClientLog() {
+        System.setProperty("jdk.httpclient.HttpClient.log", "all");
+//        System.setProperty("jdk.internal.httpclient.debug", "true");
+    }
 }

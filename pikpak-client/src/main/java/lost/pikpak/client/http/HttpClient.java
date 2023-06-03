@@ -25,6 +25,42 @@ public interface HttpClient extends WithContext {
         return new HttpClientImpl(context);
     }
 
+    static void logRequest(String requestId,
+                           HttpRequest request) {
+        if (LOG.isLoggable(DEBUG)) {
+            var sb = new StringBuilder();
+            sb.append(">> APP HTTP[%s]".formatted(requestId)).append("\n");
+            sb.append(">> RequestLine: ").append("\n")
+                .append(request.method())
+                .append(" ")
+                .append(request.uri().toString())
+                .append(" ")
+                .append(request.version())
+                .append("\n");
+            sb.append(">> Headers: ").append("\n")
+                .append(request.headers().toString())
+                .append("\n");
+            request.bodyPublisher().ifPresent(p -> {
+                var len = p.contentLength();
+                sb.append(">> BodyPublisher contentLength: ").append(len).append("\n");
+                if (len < 0) {
+                    sb.append("""
+                        --------------------------------------------------------
+                        *NOTE*
+                        we got request body `content length < 0`,
+                        check your HttpRequest.BodyPublisher.contentLength()
+                        if you dont want `Transfer-Encoding: chunked`
+                        --------------------------------------------------------
+                        """).append("\n");
+                }
+            });
+            sb.append(">> Body: ").append("\n")
+                .append(request.bodyPublisher().map(Util::collectIntoString).orElse(""))
+                .append("\n");
+            LOG.log(DEBUG, sb.toString());
+        }
+    }
+
     BodyAdapters bodyAdapters();
 
     /**
@@ -127,44 +163,26 @@ public interface HttpClient extends WithContext {
         return headers;
     }
 
-    private void logRequest(String requestId,
-                            HttpRequest request) {
-        if (LOG.isLoggable(DEBUG)) {
-            var sb = new StringBuilder();
-            sb.append("HTTP[%s]".formatted(requestId));
-            sb.append("\n");
-            sb.append(">> ");
-            sb.append(request.method());
-            sb.append(" ");
-            sb.append(request.uri().toString());
-            sb.append("\n");
-            sb.append("Headers: ");
-            sb.append(request.headers().toString());
-            sb.append("\n");
-            sb.append("Body: ");
-            sb.append(request.bodyPublisher().map(Util::collectIntoString).orElse(""));
-            LOG.log(DEBUG, sb.toString());
-        }
-    }
-
     private <T extends HttpResponse.Body<V, E>, V, E> void logResponse(String requestId,
                                                                        HttpResponse<T, V, E> response) {
         if (LOG.isLoggable(DEBUG)) {
             var sb = new StringBuilder();
-            sb.append("HTTP[%s]".formatted(requestId));
-            sb.append("\n");
-            sb.append("<< ");
-            sb.append(response.request().method());
-            sb.append(" ");
-            sb.append(response.request().uri());
-            sb.append(" ");
-            sb.append(response.status());
-            sb.append("\n");
-            sb.append("Headers: ");
-            sb.append(response.headers().toString());
-            sb.append("\n");
-            sb.append("Body: ");
-            sb.append(response.body());
+            sb.append("<< APP HTTP[%s]".formatted(requestId)).append("\n");
+            sb.append("<< StatusLine: ").append("\n")
+                .append(response.request().method())
+                .append(" ")
+                .append(response.request().uri())
+                .append(" ")
+                .append(response.status())
+                .append(" ")
+                .append(response.request().version())
+                .append("\n");
+            sb.append("<< Headers: ").append("\n")
+                .append(response.headers()) // TODO
+                .append("\n");
+            sb.append("<< Body: ").append("\n")
+                .append(response.body()) // TODO
+                .append("\n");
             LOG.log(DEBUG, sb.toString());
         }
     }

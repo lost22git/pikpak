@@ -33,7 +33,7 @@ subprojects {
     testImplementation(libs.easyrandom.core)
   }
 
-  tasks.compileJava {
+  tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
     options.compilerArgs += [
       "-parameters",
@@ -47,11 +47,11 @@ subprojects {
     ]
   }
 
-  tasks.test {
+  tasks.withType(Test).configureEach {
+    useJUnitPlatform()
     jvmArgs = [
       "--enable-preview"
     ]
-    useJUnitPlatform()
   }
 
 }

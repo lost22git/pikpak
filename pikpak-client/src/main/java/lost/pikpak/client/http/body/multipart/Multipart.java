@@ -9,7 +9,7 @@ import static java.lang.System.Logger.Level.DEBUG;
 public sealed interface Multipart {
     System.Logger LOG = System.getLogger(Multipart.class.getName());
 
-    String DEFAULT_BOUNDARY = "--^_^--";
+    String DEFAULT_BOUNDARY = "^_^";
 
     static Builder builder() {
         return new Builder();
@@ -17,8 +17,16 @@ public sealed interface Multipart {
 
     String boundary();
 
+    default String boundaryStart() {
+        return "--" + boundary();
+    }
+
     default String boundaryEnd() {
-        return boundary() + "--";
+        return boundaryStart() + "--";
+    }
+
+    default String contentType() {
+        return "multipart/form-data; boundary=" + boundary();
     }
 
     List<Part> parts();

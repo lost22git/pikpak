@@ -30,6 +30,10 @@ public interface Params {
 
     List<String> value(String name);
 
+    default String contentType() {
+        return "application/x-www-form-urlencoded";
+    }
+
     default String format() {
         var sb = new StringBuilder();
         for (var name : names()) {

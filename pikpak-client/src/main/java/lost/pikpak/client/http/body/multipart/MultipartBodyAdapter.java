@@ -6,7 +6,28 @@ import java.lang.reflect.Type;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
+import java.util.List;
 
+/**
+ * <pre>
+ * # Header:
+ * Content-Type: multipart/form-data; boundary=^_^
+ * Content-Length: 333173
+ *
+ * # Body:
+ * --^_^                                // first part start
+ * Content-Disposition: form-data; name="file"; filename="test.png"
+ * Content-Type: image/png
+ * Content-Length: 333038
+ *
+ * ... file content bytes
+ * --^_^                                // second part start
+ * ... second part headers
+ *
+ * ... second part body
+ * --^_^--                              // body end
+ * </pre>
+ */
 public final class MultipartBodyAdapter implements BodyAdapter<Multipart> {
 
     private final Reader reader = new Reader();
@@ -39,30 +60,17 @@ public final class MultipartBodyAdapter implements BodyAdapter<Multipart> {
     private static final class Writer implements BodyWriter<Multipart> {
         @Override
         public HttpRequest.BodyPublisher write(Multipart data) {
+            var boundaryStart = data.boundaryStart();
+            var boundaryEnd = data.boundaryEnd();
+            var partCount = data.parts().size();
 
-            var list = new ArrayList<HttpRequest.BodyPublisher>();
-
+            List<HttpRequest.BodyPublisher> list = new ArrayList<>(partCount + 1);
+            // parts
             for (Part part : data.parts()) {
-                // boundary
-                var boundary = HttpRequest.BodyPublishers.ofString(data.boundary() + "\r\n");
-                list.add(boundary);
-
-                // headers
-                var sb = new StringBuilder();
-                part.headers().forEach((k, v) -> {
-                    sb.append(k).append(": ").append(v);
-                    sb.append("\r\n");
-                });
-                sb.append("\r\n");
-                var headers = HttpRequest.BodyPublishers.ofString(sb.toString());
-                list.add(headers);
-
-                // body
-                list.add(part.body());
-                list.add(HttpRequest.BodyPublishers.ofString("\r\n"));
+                list.add(part.bodyPublisher(boundaryStart));
             }
-            var boundaryEnd = HttpRequest.BodyPublishers.ofString(data.boundaryEnd());
-            list.add(boundaryEnd);
+            // end
+            list.add(HttpRequest.BodyPublishers.ofString(boundaryEnd + Part.EOL));
 
             return HttpRequest.BodyPublishers.concat(list.toArray(HttpRequest.BodyPublisher[]::new));
         }

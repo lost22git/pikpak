@@ -3,12 +3,11 @@ package lost.pikpak.client.http.body.multipart;
 import lost.pikpak.client.util.Util;
 
 import java.net.http.HttpRequest;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 public interface Part {
+
+    String EOL = "\r\n";
 
     static Builder builder(String name) {
         return new Builder(name);
@@ -29,7 +28,32 @@ public interface Part {
         sb.append("form-data;");
         sb.append(" name=").append(Util.quote(name())).append(";");
         filename().ifPresent(fname -> sb.append(" filename=").append(Util.quote(fname)).append(";"));
+        sb.deleteCharAt(sb.length() - 1);
         return sb.toString();
+    }
+
+    default HttpRequest.BodyPublisher bodyPublisher(String boundaryStart) {
+        var list = new ArrayList<HttpRequest.BodyPublisher>(4);
+        // boundary
+        var boundary = HttpRequest.BodyPublishers.ofString(boundaryStart + EOL);
+        list.add(boundary);
+
+        // headers
+        var sb = new StringBuilder();
+        headers().forEach((k, v) -> {
+            sb.append(k).append(": ").append(v);
+            sb.append(EOL);
+        });
+        sb.append(EOL);
+        var headers = HttpRequest.BodyPublishers.ofString(sb.toString());
+        list.add(headers);
+
+        // body
+        list.add(body());
+        //
+        list.add(HttpRequest.BodyPublishers.ofString(EOL));
+
+        return HttpRequest.BodyPublishers.concat(list.toArray(HttpRequest.BodyPublisher[]::new));
     }
 
     final class Impl implements Part {
@@ -52,11 +76,11 @@ public interface Part {
             this.contentType = contentType;
             this.body = body;
             {
-                var tmpHeaders = new HashMap<String, String>();
-                tmpHeaders.put("content-length", String.valueOf(body.contentLength()));
-                tmpHeaders.putAll(headers);
-                tmpHeaders.put("content-type", contentType);
-                tmpHeaders.put("content-disposition", contentDisposition());
+                Map<String, String> tmpHeaders = new HashMap<>(headers);
+                // not be overridden by headers
+                tmpHeaders.put("Content-Disposition", contentDisposition());
+                tmpHeaders.put("Content-Type", contentType);
+                tmpHeaders.put("Content-Length", String.valueOf(body.contentLength()));
                 this.headers = Map.copyOf(tmpHeaders);
             }
         }
@@ -110,6 +134,7 @@ public interface Part {
         }
 
         public Builder filename(String filename) {
+            Objects.requireNonNull(filename);
             this.filename = filename;
             return this;
         }
@@ -119,6 +144,7 @@ public interface Part {
         }
 
         public Builder contentType(String contentType) {
+            Objects.requireNonNull(contentType);
             this.contentType = contentType;
             return this;
         }
@@ -129,15 +155,18 @@ public interface Part {
 
         public Builder header(String name,
                               String value) {
-            this.headers.put(name.toLowerCase(), value);
+            Objects.requireNonNull(name);
+            Objects.requireNonNull(value);
+            this.headers.put(name, value);
             return this;
         }
 
         public Map<String, String> headers() {
-            return Map.copyOf(this.headers);
+            return this.headers;
         }
 
         public Builder body(HttpRequest.BodyPublisher body) {
+            Objects.requireNonNull(body);
             this.body = body;
             return this;
         }
