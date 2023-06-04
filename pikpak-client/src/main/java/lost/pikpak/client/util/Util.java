@@ -2,6 +2,8 @@ package lost.pikpak.client.util;
 
 import io.avaje.jsonb.Jsonb;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.net.URL;
@@ -29,6 +31,16 @@ public final class Util {
     }
 
     private Util() {
+    }
+
+    public static boolean hasClass(String classname) {
+        try {
+            var classLoader = Util.class.getClassLoader();
+            Class.forName(classname, false, classLoader);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public static StringBuilder deleteLastChar(StringBuilder sb) {
@@ -159,6 +171,62 @@ public final class Util {
             });
     }
 
+    public static Flow.Publisher<List<ByteBuffer>> intoPublisher(InputStream inputStream) {
+        return subscriber -> subscriber.onSubscribe(new Flow.Subscription() {
+            private final InputStream is = inputStream;
+            private final int bufferSize = 1024 * 8; // 8K
+            private byte[] buffer = new byte[bufferSize];
+
+            @Override
+            public void request(long n) {
+                try {
+                    var read = is.read(this.buffer);
+                    if (read == -1) {
+                        close();
+                        subscriber.onComplete();
+                    } else {
+                        var target = new byte[read];
+                        System.arraycopy(this.buffer, 0, target, 0, read);
+                        var item = List.of(ByteBuffer.wrap(target));
+                        subscriber.onNext(item);
+                        request(1);
+                    }
+                } catch (IOException e) {
+                    close();
+                    subscriber.onError(e);
+                }
+            }
+
+            private void close() {
+                this.buffer = null;
+                try {
+                    this.is.close();
+                } catch (IOException ignore) {
+                }
+            }
+
+            @Override
+            public void cancel() {
+
+            }
+        });
+    }
+
+
+    /**
+     * subscribe `publisher` and collect items into {@link OutputStream}
+     *
+     * @param publisher    the publisher to be subscribed
+     * @param outputStream the output stream, it will be close
+     * @throws IOException
+     */
+    public static void collectIntoStream(Flow.Publisher<ByteBuffer> publisher,
+                                         OutputStream outputStream) throws IOException {
+        try (var out = outputStream) {
+            out.write(collectIntoBytes(publisher));
+        }
+    }
+
     /**
      * subscribe `publisher` and collect items into String
      *
@@ -166,12 +234,23 @@ public final class Util {
      * @return the result collected by subscriber subscribes `publisher`
      */
     public static String collectIntoString(Flow.Publisher<ByteBuffer> publisher) {
+        var bytes = collectIntoBytes(publisher);
+        return bytes.length == 0 ? "" : new String(bytes);
+    }
+
+    /**
+     * subscribe `publisher` and collect items into byte array
+     *
+     * @param publisher the publisher to be subscribed
+     * @return the result collected by subscriber subscribes `publisher`
+     */
+    public static byte[] collectIntoBytes(Flow.Publisher<ByteBuffer> publisher) {
         return new Flow.Subscriber<ByteBuffer>() {
             private final CompletableFuture<List<ByteBuffer>> result = new CompletableFuture<>();
             private final List<ByteBuffer> buffers = new ArrayList<>();
             private Flow.Subscription subscription;
 
-            public String collect(Flow.Publisher<ByteBuffer> pub) {
+            public byte[] collect(Flow.Publisher<ByteBuffer> pub) {
                 pub.subscribe(this);
                 var byteBuffers = result.join();
                 int size = 0;
@@ -185,7 +264,7 @@ public final class Util {
                     bb.get(bytes, start, remaining);
                     start += remaining;
                 }
-                return new String(bytes);
+                return bytes;
             }
 
             @Override

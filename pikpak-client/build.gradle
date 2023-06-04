@@ -10,4 +10,7 @@ dependencies {
   // caffeine
   implementation(libs.caffeine)
 
+  // helidon
+  implementation(libs.helidon.nima.webclient)
+
 }

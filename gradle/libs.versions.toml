@@ -4,6 +4,7 @@ avaje-jsonb = "1.6-RC1"
 awaitility = "4.2.0"
 caffeine = "3.1.6"
 easyrandom = "6.1.8"
+helidon = "4.0.0-ALPHA6"
 jetbrains-annotations = "24.0.1"
 jmh = "1.35"
 junit = "5.10.0-M1"
@@ -23,6 +24,7 @@ avaje-jsonb-generator = { module = "io.avaje:avaje-jsonb-generator", version.ref
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
 easyrandom-core = { module = "io.github.dvgaba:easy-random-core", version.ref = "easyrandom" }
+helidon-nima-webclient = { module = "io.helidon.nima.webclient:helidon-nima-webclient", version.ref = "helidon" }
 jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains-annotations" }
 jmh-core = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh" }
 jmh-generator-annprocess = { module = "org.openjdk.jmh:jmh-generator-annprocess", version.ref = "jmh" }

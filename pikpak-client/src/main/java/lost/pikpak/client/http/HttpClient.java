@@ -13,12 +13,18 @@ import lost.pikpak.client.http.HttpResponse.OkBody;
 import lost.pikpak.client.http.body.BodyAdapters;
 import lost.pikpak.client.util.Util;
 
+import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandler;
+import java.net.http.HttpResponse.BodySubscriber;
+import java.net.http.HttpResponse.ResponseInfo;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Flow;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.System.Logger.Level.DEBUG;
@@ -27,6 +33,17 @@ public interface HttpClient extends WithContext {
     System.Logger LOG = System.getLogger(HttpClient.class.getName());
 
     static HttpClient create(Context context) {
+        var classname = "lost.pikpak.client.helidon.HelidonNimaWebClient";
+        if (Util.hasClass(classname)) {
+            try {
+                Class<?> cls = Class.forName(classname);
+                return (HttpClient) cls
+                    .getConstructor(new Class[]{Context.class})
+                    .newInstance(context);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
         return new HttpClientImpl(context);
     }
 
@@ -34,6 +51,20 @@ public interface HttpClient extends WithContext {
     BodyAdapters bodyAdapters();
 
     /**
+     * SubTypes can implement this method or {@link HttpClient#doSend(HttpRequest, BodyHandler)}
+     *
+     * @param request the request
+     * @param <T>     the type of Response of SubTypes
+     * @return response of SubTypes
+     * @throws Exception the Exception
+     */
+    default <T extends Response> T doSend(HttpRequest request) throws Exception {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * SubTypes can implement this method or {@link HttpClient#doSend(HttpRequest)}
+     * <p>
      * NOTE: not recommended to call directly
      * <p>
      * Send request and return response, throw Exception if any exception occurred
@@ -52,8 +83,23 @@ public interface HttpClient extends WithContext {
      * @return the response
      * @throws Exception the exception
      */
-    <T extends Body<V, E>, V, E> HttpResponse<T, V, E> doSend(HttpRequest request,
-                                                              BodyHandler<T> bodyHandler) throws Exception;
+    default <T extends Body<V, E>, V, E> HttpResponse<T, V, E> doSend(HttpRequest request,
+                                                                      BodyHandler<T> bodyHandler) throws Exception {
+        try (var res = doSend(request)) {
+            var responseInfo = res.responseInfo();
+            var resBodySubscriber = bodyHandler.apply(responseInfo);
+            var resBodyPublisher = res.intoBodyPublisher();
+
+            resBodyPublisher.subscribe(resBodySubscriber);
+            T resBody = resBodySubscriber.getBody().toCompletableFuture().get();
+            return new HttpResponse<>(
+                request,
+                responseInfo.statusCode(),
+                responseInfo.headers().map(),
+                resBody
+            );
+        }
+    }
 
     /**
      * Send request and return ok response,
@@ -123,7 +169,7 @@ public interface HttpClient extends WithContext {
         BodyHandler<Body<T, String>> bodyHandler = responseInfo -> {
             int status = responseInfo.statusCode();
             if (200 <= status && status < 300) {
-                var ups = (java.net.http.HttpResponse.BodySubscriber<T>) bodyAdapters()
+                var ups = (BodySubscriber<T>) bodyAdapters()
                     .json()
                     .reader()
                     .read(bodyType);
@@ -226,6 +272,21 @@ public interface HttpClient extends WithContext {
                 .append(response.body()) // TODO
                 .append("\n");
             LOG.log(DEBUG, sb.toString());
+        }
+    }
+
+    interface Response extends AutoCloseable {
+        InputStream bodyInputStream();
+
+        ResponseInfo responseInfo();
+
+        /**
+         * convert into {@code Flow.Publisher<List<ByteBuffer>>}
+         *
+         * @return the publisher
+         */
+        default Flow.Publisher<List<ByteBuffer>> intoBodyPublisher() {
+            return Util.intoPublisher(bodyInputStream());
         }
     }
 }
