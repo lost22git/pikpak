@@ -396,5 +396,4 @@ public record Config(
                    '}';
         }
     }
-
 }

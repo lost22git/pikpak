@@ -1,13 +1,8 @@
 package lost.pikpak.client.http;
 
-import lost.pikpak.client.http.body.BodyAdapters;
-
-import java.lang.reflect.Type;
 import java.net.http.HttpRequest;
-import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodySubscriber;
 import java.net.http.HttpResponse.BodySubscribers;
-import java.net.http.HttpResponse.ResponseInfo;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -66,34 +61,6 @@ public record HttpResponse<T extends HttpResponse.Body<V, E>, V, E>(
             return !isOk();
         }
 
-        class Handler<V> implements BodyHandler<Body<V, String>> {
-            private final BodyAdapters bodyAdapters;
-            private final Type type;
-
-            private Handler(BodyAdapters bodyAdapters,
-                            Type type) {
-                this.bodyAdapters = bodyAdapters;
-                this.type = type;
-            }
-
-            public static <V> Handler<V> create(BodyAdapters bodyAdapters,
-                                                Type type) {
-                return new Handler<>(bodyAdapters, type);
-            }
-
-            @SuppressWarnings("unchecked")
-            @Override
-            public BodySubscriber<Body<V, String>> apply(ResponseInfo responseInfo) {
-                int status = responseInfo.statusCode();
-                if (200 <= status && status < 300) {
-                    var ups = (BodySubscriber<V>) bodyAdapters.json().reader().read(type);
-                    return Body.okBodySubscriber(ups);
-                } else {
-                    var ups = bodyAdapters.text().reader().read(null);
-                    return Body.errBodySubscriber(ups);
-                }
-            }
-        }
     }
 
     public record OkBody<V, E>(

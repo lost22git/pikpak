@@ -31,6 +31,11 @@ public final class Util {
     private Util() {
     }
 
+    public static StringBuilder deleteLastChar(StringBuilder sb) {
+        if (!sb.isEmpty()) sb.deleteCharAt(sb.length() - 1);
+        return sb;
+    }
+
     public static String quote(String data) {
         return "\"" + escapeQuote(data) + "\"";
     }

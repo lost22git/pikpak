@@ -29,8 +29,7 @@ public interface Part {
         sb.append("form-data;");
         sb.append(" name=").append(Util.quote(name())).append(";");
         filename().ifPresent(fname -> sb.append(" filename=").append(Util.quote(fname)).append(";"));
-        sb.deleteCharAt(sb.length() - 1);
-        return sb.toString();
+        return Util.deleteLastChar(sb).toString();
     }
 
     default BodyPublisher bodyPublisher(String boundaryStart) {

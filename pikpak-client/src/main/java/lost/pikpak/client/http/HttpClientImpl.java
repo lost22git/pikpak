@@ -2,6 +2,7 @@ package lost.pikpak.client.http;
 
 import lost.pikpak.client.Config;
 import lost.pikpak.client.context.Context;
+import lost.pikpak.client.http.HttpResponse.Body;
 import lost.pikpak.client.http.body.BodyAdapters;
 
 import java.net.InetSocketAddress;
@@ -68,8 +69,8 @@ final class HttpClientImpl implements HttpClient {
     }
 
     @Override
-    public <T extends HttpResponse.Body<V, E>, V, E> HttpResponse<T, V, E> doSend(HttpRequest request,
-                                                                                  BodyHandler<T> bodyHandler) throws Exception {
+    public <T extends Body<V, E>, V, E> HttpResponse<T, V, E> doSend(HttpRequest request,
+                                                                     BodyHandler<T> bodyHandler) throws Exception {
         var res = this.jdkHttpClient.send(request, bodyHandler);
         return new HttpResponse<>(
             request,

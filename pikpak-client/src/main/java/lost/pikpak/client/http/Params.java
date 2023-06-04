@@ -1,5 +1,7 @@
 package lost.pikpak.client.http;
 
+import lost.pikpak.client.util.Util;
+
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.*;
@@ -45,8 +47,7 @@ public interface Params {
                     .append("&");
             }
         }
-        if (!sb.isEmpty()) sb.deleteCharAt(sb.length() - 1);
-        return sb.toString();
+        return Util.deleteLastChar(sb).toString();
     }
 
     final class Impl implements Params {

@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class MultipartTest {
     static {
-//        Util.configureJdkHttpClientLog();
+        Util.configureJdkHttpClientLog();
         Util.initJUL();
     }
 
@@ -88,7 +88,10 @@ public class MultipartTest {
                     )
                     .build()
                 ).build();
-            var reqBody = BodyAdapters.create().multipart().writer().write(multipart);
+            var reqBody = BodyAdapters.create()
+                .multipart()
+                .writer()
+                .write(multipart);
 
             var request = HttpRequest.newBuilder()
                 .uri(URI.create("https://api.anonfiles.com/upload"))
@@ -96,10 +99,7 @@ public class MultipartTest {
                 .POST(reqBody)
                 .build();
 
-//            lost.pikpak.client.http.HttpClient.logRequest(Util.genRequestId(), request);
-
             var res = client.send(request, HttpResponse.BodyHandlers.ofString());
-//            System.out.println("resBody = " + res.body());
 
             assertThat(res.statusCode()).isEqualTo(200);
             assertThat(res.body()).contains("url", "id", "name");
