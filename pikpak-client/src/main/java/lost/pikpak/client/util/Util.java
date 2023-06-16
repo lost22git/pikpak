@@ -17,6 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow;
+import java.util.concurrent.Flow.Publisher;
 import java.util.logging.LogManager;
 
 public final class Util {
@@ -171,7 +172,13 @@ public final class Util {
             });
     }
 
-    public static Flow.Publisher<List<ByteBuffer>> intoPublisher(InputStream inputStream) {
+    /**
+     * convert {@code InputStream} into {@code Flow.Publisher<List<ByteBuffer>>}
+     *
+     * @param inputStream the input stream
+     * @return the publisher
+     */
+    public static Publisher<List<ByteBuffer>> intoPublisher(InputStream inputStream) {
         return subscriber -> subscriber.onSubscribe(new Flow.Subscription() {
             private final InputStream is = inputStream;
             private final int bufferSize = 1024 * 8; // 8K
@@ -220,7 +227,7 @@ public final class Util {
      * @param outputStream the output stream, it will be close
      * @throws IOException
      */
-    public static void collectIntoStream(Flow.Publisher<ByteBuffer> publisher,
+    public static void collectIntoStream(Publisher<ByteBuffer> publisher,
                                          OutputStream outputStream) throws IOException {
         try (var out = outputStream) {
             out.write(collectIntoBytes(publisher));
@@ -233,7 +240,7 @@ public final class Util {
      * @param publisher the publisher to be subscribed
      * @return the result collected by subscriber subscribes `publisher`
      */
-    public static String collectIntoString(Flow.Publisher<ByteBuffer> publisher) {
+    public static String collectIntoString(Publisher<ByteBuffer> publisher) {
         var bytes = collectIntoBytes(publisher);
         return bytes.length == 0 ? "" : new String(bytes);
     }
@@ -244,13 +251,13 @@ public final class Util {
      * @param publisher the publisher to be subscribed
      * @return the result collected by subscriber subscribes `publisher`
      */
-    public static byte[] collectIntoBytes(Flow.Publisher<ByteBuffer> publisher) {
+    public static byte[] collectIntoBytes(Publisher<ByteBuffer> publisher) {
         return new Flow.Subscriber<ByteBuffer>() {
             private final CompletableFuture<List<ByteBuffer>> result = new CompletableFuture<>();
             private final List<ByteBuffer> buffers = new ArrayList<>();
             private Flow.Subscription subscription;
 
-            public byte[] collect(Flow.Publisher<ByteBuffer> pub) {
+            public byte[] collect(Publisher<ByteBuffer> pub) {
                 pub.subscribe(this);
                 var byteBuffers = result.join();
                 int size = 0;

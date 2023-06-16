@@ -28,22 +28,35 @@ import java.util.concurrent.Flow;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.System.Logger.Level.DEBUG;
+import static java.lang.System.Logger.Level.WARNING;
 
 public interface HttpClient extends WithContext {
     System.Logger LOG = System.getLogger(HttpClient.class.getName());
 
     static HttpClient create(Context context) {
-        var classname = "lost.pikpak.client.helidon.HelidonNimaWebClient";
-        if (Util.hasClass(classname)) {
-            try {
-                Class<?> cls = Class.forName(classname);
-                return (HttpClient) cls
-                    .getConstructor(new Class[]{Context.class})
-                    .newInstance(context);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+        var implsClassName = List.of(
+            "lost.pikpak.client.reactor.ReactorHttpClient",
+            "lost.pikpak.client.helidon.NimaHttpClient"
+        );
+        for (String className : implsClassName) {
+            if (Util.hasClass(className)) {
+                try {
+                    Class<?> cls = Class.forName(className);
+                    return (HttpClient) cls
+                        .getConstructor(new Class[]{Context.class})
+                        .newInstance(context);
+                } catch (Exception e) {
+                    if (LOG.isLoggable(WARNING)) {
+                        LOG.log(WARNING,
+                            "failed to new http client instance," +
+                            " className=" + className,
+                            e);
+                    }
+                }
             }
         }
+
+        // default impl
         return new HttpClientImpl(context);
     }
 
@@ -88,7 +101,7 @@ public interface HttpClient extends WithContext {
         try (var res = doSend(request)) {
             var responseInfo = res.responseInfo();
             var resBodySubscriber = bodyHandler.apply(responseInfo);
-            var resBodyPublisher = res.intoBodyPublisher();
+            var resBodyPublisher = res.bodyPublisher();
 
             resBodyPublisher.subscribe(resBodySubscriber);
             T resBody = resBodySubscriber.getBody().toCompletableFuture().get();
@@ -175,7 +188,10 @@ public interface HttpClient extends WithContext {
                     .read(bodyType);
                 return Body.okBodySubscriber(ups);
             } else {
-                var ups = bodyAdapters().text().reader().read(null);
+                var ups = bodyAdapters()
+                    .text()
+                    .reader()
+                    .read(null);
                 return Body.errBodySubscriber(ups);
             }
         };
@@ -213,20 +229,20 @@ public interface HttpClient extends WithContext {
                             HttpRequest request) {
         if (LOG.isLoggable(DEBUG)) {
             var sb = new StringBuilder();
-            sb.append(">> APP HTTP[%s]".formatted(requestId)).append("\n");
-            sb.append(">> RequestLine: ").append("\n")
+            sb.append("--> APP HTTP[%s]".formatted(requestId)).append("\n");
+            sb.append("--> RequestLine: ").append("\n")
                 .append(request.method())
                 .append(" ")
                 .append(request.uri().toString())
                 .append(" ")
                 .append(request.version())
                 .append("\n");
-            sb.append(">> Headers: ").append("\n")
+            sb.append("--> Headers: ").append("\n")
                 .append(request.headers().toString())
                 .append("\n");
             request.bodyPublisher().ifPresent(p -> {
                 var len = p.contentLength();
-                sb.append(">> BodyPublisher contentLength: ").append(len).append("\n");
+                sb.append("--> BodyPublisher contentLength: ").append(len).append("\n");
                 if (len < 0) {
                     sb.append("""
                         --------------------------------------------------------
@@ -238,7 +254,7 @@ public interface HttpClient extends WithContext {
                         """).append("\n");
                 }
             });
-            sb.append(">> Body: ").append("\n")
+            sb.append("--> Body: ").append("\n")
                 .append(request.bodyPublisher()
                     .map(Util::collectIntoString)
                     .orElse("")
@@ -254,9 +270,9 @@ public interface HttpClient extends WithContext {
         if (LOG.isLoggable(DEBUG)) {
             var elapsedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
             var sb = new StringBuilder();
-            sb.append("<< APP HTTP[%s] (elapsed time: %dms)".formatted(requestId, elapsedMs))
+            sb.append("<-- APP HTTP[%s] (elapsed time: %dms)".formatted(requestId, elapsedMs))
                 .append("\n");
-            sb.append("<< StatusLine: ").append("\n")
+            sb.append("<-- StatusLine: ").append("\n")
                 .append(response.request().method())
                 .append(" ")
                 .append(response.request().uri())
@@ -265,10 +281,10 @@ public interface HttpClient extends WithContext {
                 .append(" ")
                 .append(response.request().version())
                 .append("\n");
-            sb.append("<< Headers: ").append("\n")
+            sb.append("<-- Headers: ").append("\n")
                 .append(response.headers())
                 .append("\n");
-            sb.append("<< Body: ").append("\n")
+            sb.append("<-- Body: ").append("\n")
                 .append(response.body()) // TODO
                 .append("\n");
             LOG.log(DEBUG, sb.toString());
@@ -281,11 +297,11 @@ public interface HttpClient extends WithContext {
         ResponseInfo responseInfo();
 
         /**
-         * convert into {@code Flow.Publisher<List<ByteBuffer>>}
+         * convert body inputStream into {@code Flow.Publisher<List<ByteBuffer>>}
          *
          * @return the publisher
          */
-        default Flow.Publisher<List<ByteBuffer>> intoBodyPublisher() {
+        default Flow.Publisher<List<ByteBuffer>> bodyPublisher() {
             return Util.intoPublisher(bodyInputStream());
         }
     }

@@ -16,24 +16,24 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.ResponseInfo;
 import java.util.Objects;
 
-import static java.lang.System.Logger.Level.DEBUG;
+import static java.lang.System.Logger.Level.INFO;
 import static java.net.http.HttpClient.Version.HTTP_1_1;
 
-public final class HelidonNimaWebClient implements HttpClient {
+public final class NimaHttpClient implements HttpClient {
     private static final System.Logger LOG =
-        System.getLogger(HelidonNimaWebClient.class.getName());
+        System.getLogger(NimaHttpClient.class.getName());
     private final Context context;
     private final BodyAdapters bodyAdapters;
     private final Http1Client http1Client;
 
-    public HelidonNimaWebClient(Context context) {
+    public NimaHttpClient(Context context) {
         Objects.requireNonNull(context);
         this.context = context;
         this.bodyAdapters = BodyAdapters.create();
         this.http1Client = Http1Client.builder()
             .build();
-        if (LOG.isLoggable(DEBUG)) {
-            LOG.log(DEBUG, "Helidon nima webclient init ok");
+        if (LOG.isLoggable(INFO)) {
+            LOG.log(INFO, "http client init ok");
         }
     }
 

@@ -41,7 +41,7 @@ public interface Params {
         var sb = new StringBuilder();
         for (var name : names()) {
             for (var value : value(name)) {
-                sb.append(name)
+                sb.append(URLEncoder.encode(name, UTF_8))
                     .append("=")
                     .append(URLEncoder.encode(value, UTF_8))
                     .append("&");

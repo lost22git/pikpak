@@ -13,4 +13,8 @@ dependencies {
   // helidon
   implementation(libs.helidon.nima.webclient)
 
+  // reactor
+  implementation(platform(libs.reactor))
+  implementation('io.projectreactor.netty:reactor-netty-core')
+  implementation('io.projectreactor.netty:reactor-netty-http')
 }

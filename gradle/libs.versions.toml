@@ -15,6 +15,7 @@ plugin-shadow = "7.1.2"
 plugin-spotbug = "5.0.14"
 plugin-version-catalog-update = "0.8.0"
 plugin-versions = "0.46.0"
+reactor = "2022.0.8"
 record-builder = "36"
 
 [libraries]
@@ -31,6 +32,7 @@ jmh-generator-annprocess = { module = "org.openjdk.jmh:jmh-generator-annprocess"
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
 junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit" }
+reactor = { module = "io.projectreactor:reactor-bom", version.ref = "reactor" }
 record-builder = { module = "io.soabase.record-builder:record-builder-core", version.ref = "record-builder" }
 record-builder-processor = { module = "io.soabase.record-builder:record-builder-processor", version.ref = "record-builder" }
 
