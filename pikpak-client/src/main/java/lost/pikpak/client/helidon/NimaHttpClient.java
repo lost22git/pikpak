@@ -7,8 +7,8 @@ import io.helidon.nima.webclient.http1.Http1ClientResponse;
 import lost.pikpak.client.context.Context;
 import lost.pikpak.client.http.HttpClient;
 import lost.pikpak.client.http.body.BodyAdapters;
+import lost.pikpak.client.util.ByteUtil;
 import lost.pikpak.client.util.SubscriberInputStream;
-import lost.pikpak.client.util.Util;
 
 import java.io.InputStream;
 import java.net.http.HttpClient.Version;
@@ -65,7 +65,7 @@ public final class NimaHttpClient implements HttpClient {
             res = req.outputStream(out -> {
                 var in = new SubscriberInputStream();
                 body.get().subscribe(in);
-                Util.ioCopy(in, out, 0);
+                ByteUtil.ioCopy(in, out, 0);
             });
 //            res = req.outputStream(out -> Util.collectIntoStream(body.get(), out));
         } else {

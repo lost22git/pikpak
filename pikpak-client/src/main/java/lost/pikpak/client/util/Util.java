@@ -2,8 +2,6 @@ package lost.pikpak.client.util;
 
 import io.avaje.jsonb.Jsonb;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.net.URL;
@@ -12,12 +10,10 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodySubscriber;
 import java.net.http.HttpResponse.BodySubscribers;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Flow;
-import java.util.concurrent.Flow.Publisher;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.logging.LogManager;
 
 public final class Util {
@@ -172,151 +168,6 @@ public final class Util {
             });
     }
 
-    /**
-     * copy bytes from inputStream to outputStream,
-     * and auto close them when error or complete
-     *
-     * @param inputStream  the inputStream
-     * @param outputStream the outputStream
-     * @param bufferSize   buffer size, fallback to 8k if value < 8k
-     * @throws IOException the error
-     */
-    public static void ioCopy(InputStream inputStream,
-                              OutputStream outputStream,
-                              int bufferSize) throws IOException {
-        Objects.requireNonNull(inputStream);
-        Objects.requireNonNull(outputStream);
-        try (
-            var in = inputStream;
-            var out = outputStream
-        ) {
-            var size = Math.max(bufferSize, 8 * 1024);
-            var buffer = new byte[size];
-            for (; ; ) {
-                var read = in.read(buffer);
-                if (read == -1) break;
-                out.write(buffer, 0, read);
-            }
-        }
-    }
-
-    /**
-     * check the bytebuffer whether is full array slice
-     *
-     * @param buffer the bytebuffer
-     * @return true if the bytebuffer is full array slice
-     */
-    public static boolean fullArraySlice(ByteBuffer buffer) {
-        Objects.requireNonNull(buffer);
-        return buffer.hasArray()
-               && buffer.array().length == buffer.remaining();
-    }
-
-    /**
-     * get byte array from the bytebuffer for read only usage
-     *
-     * @param buffer the bytebuffer
-     * @return byte array for read only usage
-     */
-    public static byte[] getByteArrayForReadOnly(ByteBuffer buffer) {
-        Objects.requireNonNull(buffer);
-        byte[] byteArrayForReadOnly;
-        if (fullArraySlice(buffer)) { // not copy, use internal array
-            byteArrayForReadOnly = buffer.array();
-        } else { // copy
-            int len = buffer.remaining();
-            if (len > 0) {
-                byteArrayForReadOnly = new byte[len];
-                buffer.get(byteArrayForReadOnly);
-            } else {
-                byteArrayForReadOnly = new byte[0];
-            }
-        }
-        return byteArrayForReadOnly;
-    }
-
-    /**
-     * subscribe `publisher` and collect items into {@link OutputStream}
-     *
-     * @param publisher    the publisher to be subscribed
-     * @param outputStream the output stream, it will be close
-     * @throws IOException
-     */
-    public static void collectIntoStream(Publisher<ByteBuffer> publisher,
-                                         OutputStream outputStream) throws IOException {
-        Objects.requireNonNull(publisher);
-        Objects.requireNonNull(outputStream);
-        try (var out = outputStream) {
-            out.write(collectIntoBytes(publisher));
-        }
-    }
-
-    /**
-     * subscribe `publisher` and collect items into String
-     *
-     * @param publisher the publisher to be subscribed
-     * @return the result collected by subscriber subscribes `publisher`
-     */
-    public static String collectIntoString(Publisher<ByteBuffer> publisher) {
-        var bytes = collectIntoBytes(publisher);
-        return bytes.length == 0 ? "" : new String(bytes);
-    }
-
-    /**
-     * subscribe `publisher` and collect items into byte array
-     *
-     * @param publisher the publisher to be subscribed
-     * @return the result collected by subscriber subscribes `publisher`
-     */
-    public static byte[] collectIntoBytes(Publisher<ByteBuffer> publisher) {
-        Objects.requireNonNull(publisher);
-        return new Flow.Subscriber<ByteBuffer>() {
-            private final CompletableFuture<List<ByteBuffer>> result =
-                new CompletableFuture<>();
-            private final List<ByteBuffer> buffers = new ArrayList<>();
-            private Flow.Subscription subscription;
-
-            public byte[] collect(Publisher<ByteBuffer> pub) {
-                pub.subscribe(this);
-                var byteBuffers = result.join(); // Blocking!
-                int size = 0;
-                for (ByteBuffer bb : byteBuffers) {
-                    size += bb.remaining();
-                }
-                byte[] bytes = new byte[size];
-                int start = 0;
-                for (ByteBuffer bb : byteBuffers) {
-                    var remaining = bb.remaining();
-                    bb.get(bytes, start, remaining); // Copy!
-                    start += remaining;
-                }
-                return bytes;
-            }
-
-            @Override
-            public void onSubscribe(Flow.Subscription subscription) {
-                this.subscription = subscription;
-                this.subscription.request(1);
-            }
-
-            @Override
-            public void onNext(ByteBuffer item) {
-                buffers.add(item);
-                this.subscription.request(1);
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                buffers.clear();
-                result.completeExceptionally(throwable);
-            }
-
-            @Override
-            public void onComplete() {
-                result.complete(buffers);
-            }
-        }.collect(publisher);
-    }
 
     /**
      * generate request id

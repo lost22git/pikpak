@@ -8,7 +8,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Flow;
 
 
-public class SubscriberInputStream extends InputStream
+public final class SubscriberInputStream extends InputStream
     implements Flow.Subscriber<ByteBuffer> {
     private Node pendingData;
     private Flow.Subscription subscription;

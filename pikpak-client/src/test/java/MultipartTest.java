@@ -2,6 +2,7 @@ import lost.pikpak.client.http.body.BodyAdapters;
 import lost.pikpak.client.http.body.multipart.Multipart;
 import lost.pikpak.client.http.body.multipart.MultipartBodyAdapter;
 import lost.pikpak.client.http.body.multipart.Part;
+import lost.pikpak.client.util.ByteUtil;
 import lost.pikpak.client.util.Util;
 import org.junit.jupiter.api.Test;
 
@@ -11,6 +12,7 @@ import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
@@ -29,14 +31,14 @@ public class MultipartTest {
             .part(
                 Part.builder("first")
                     .contentType("text/plain")
-                    .body(HttpRequest.BodyPublishers.ofString("first part is a plain text"))
+                    .body(BodyPublishers.ofString("first part is a plain text"))
                     .build()
             )
             .part(
                 Part.builder("second")
-                    .contentType("text/json")
+                    .contentType("application/json")
                     .header("x-header", "x-value")
-                    .body(HttpRequest.BodyPublishers.ofString("""
+                    .body(BodyPublishers.ofString("""
                         {
                             "name": "second part",
                             "message": "second part is a json part"
@@ -56,7 +58,7 @@ public class MultipartTest {
 
         assertThat(bodyPublisher.contentLength()).isPositive();
 
-        var bodyString = Util.collectIntoString(bodyPublisher);
+        var bodyString = ByteUtil.collectIntoString(bodyPublisher);
         System.out.println("multipart body:  \n" + bodyString);
 
     }
@@ -65,14 +67,16 @@ public class MultipartTest {
     void upload() throws Exception {
 
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            var proxy = ProxySelector.of(InetSocketAddress.createUnresolved("localhost", 55556));
+            var proxy = ProxySelector.of(
+                InetSocketAddress.createUnresolved("localhost", 55556));
             var client = HttpClient.newBuilder()
                 .executor(executor)
                 .proxy(proxy)
                 .build();
 
             Supplier<InputStream> inputStream =
-                () -> MultipartTest.class.getClassLoader().getResourceAsStream("test.png");
+                () -> MultipartTest.class.getClassLoader()
+                    .getResourceAsStream("test.png");
             var len = -1;
             try (var is = inputStream.get()) {
                 System.out.println("is.available() = " + is.available());
@@ -82,8 +86,8 @@ public class MultipartTest {
                 .part(Part.builder("file")
                     .filename("test.png")
                     .contentType("image/png")
-                    .body(HttpRequest.BodyPublishers.fromPublisher(
-                        HttpRequest.BodyPublishers.ofInputStream(inputStream),
+                    .body(BodyPublishers.fromPublisher(
+                        BodyPublishers.ofInputStream(inputStream),
                         len)
                     )
                     .build()

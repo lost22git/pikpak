@@ -11,6 +11,7 @@ import lost.pikpak.client.http.HttpResponse.Body;
 import lost.pikpak.client.http.HttpResponse.ErrBody;
 import lost.pikpak.client.http.HttpResponse.OkBody;
 import lost.pikpak.client.http.body.BodyAdapters;
+import lost.pikpak.client.util.ByteUtil;
 import lost.pikpak.client.util.InputStreamPublisher;
 import lost.pikpak.client.util.Util;
 
@@ -257,7 +258,7 @@ public interface HttpClient extends WithContext {
             });
             sb.append("--> Body: ").append("\n")
                 .append(request.bodyPublisher()
-                    .map(Util::collectIntoString)
+                    .map(ByteUtil::collectIntoString)
                     .orElse("")
                 )
                 .append("\n");
