@@ -11,6 +11,7 @@ import lost.pikpak.client.http.HttpResponse.Body;
 import lost.pikpak.client.http.HttpResponse.ErrBody;
 import lost.pikpak.client.http.HttpResponse.OkBody;
 import lost.pikpak.client.http.body.BodyAdapters;
+import lost.pikpak.client.util.InputStreamPublisher;
 import lost.pikpak.client.util.Util;
 
 import java.io.InputStream;
@@ -35,8 +36,8 @@ public interface HttpClient extends WithContext {
 
     static HttpClient create(Context context) {
         var implsClassName = List.of(
-            "lost.pikpak.client.reactor.ReactorHttpClient",
-            "lost.pikpak.client.helidon.NimaHttpClient"
+            "lost.pikpak.client.helidon.NimaHttpClient",
+            "lost.pikpak.client.reactor.ReactorHttpClient"
         );
         for (String className : implsClassName) {
             if (Util.hasClass(className)) {
@@ -302,7 +303,7 @@ public interface HttpClient extends WithContext {
          * @return the publisher
          */
         default Flow.Publisher<List<ByteBuffer>> bodyPublisher() {
-            return Util.intoPublisher(bodyInputStream());
+            return new InputStreamPublisher(bodyInputStream());
         }
     }
 }

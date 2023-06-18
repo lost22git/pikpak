@@ -173,52 +173,67 @@ public final class Util {
     }
 
     /**
-     * convert {@code InputStream} into {@code Flow.Publisher<List<ByteBuffer>>}
+     * copy bytes from inputStream to outputStream,
+     * and auto close them when error or complete
      *
-     * @param inputStream the input stream
-     * @return the publisher
+     * @param inputStream  the inputStream
+     * @param outputStream the outputStream
+     * @param bufferSize   buffer size, fallback to 8k if value < 8k
+     * @throws IOException the error
      */
-    public static Publisher<List<ByteBuffer>> intoPublisher(InputStream inputStream) {
-        return subscriber -> subscriber.onSubscribe(new Flow.Subscription() {
-            private final InputStream is = inputStream;
-            private final int bufferSize = 1024 * 8; // 8K
-            private byte[] buffer = new byte[bufferSize];
-
-            @Override
-            public void request(long n) {
-                try {
-                    var read = is.read(this.buffer);
-                    if (read == -1) {
-                        close();
-                        subscriber.onComplete();
-                    } else {
-                        var target = new byte[read];
-                        System.arraycopy(this.buffer, 0, target, 0, read);
-                        var item = List.of(ByteBuffer.wrap(target));
-                        subscriber.onNext(item);
-                        request(1);
-                    }
-                } catch (IOException e) {
-                    close();
-                    subscriber.onError(e);
-                }
+    public static void ioCopy(InputStream inputStream,
+                              OutputStream outputStream,
+                              int bufferSize) throws IOException {
+        Objects.requireNonNull(inputStream);
+        Objects.requireNonNull(outputStream);
+        try (
+            var in = inputStream;
+            var out = outputStream
+        ) {
+            var size = Math.max(bufferSize, 8 * 1024);
+            var buffer = new byte[size];
+            for (; ; ) {
+                var read = in.read(buffer);
+                if (read == -1) break;
+                out.write(buffer, 0, read);
             }
-
-            private void close() {
-                this.buffer = null;
-                try {
-                    this.is.close();
-                } catch (IOException ignore) {
-                }
-            }
-
-            @Override
-            public void cancel() {
-
-            }
-        });
+        }
     }
 
+    /**
+     * check the bytebuffer whether is full array slice
+     *
+     * @param buffer the bytebuffer
+     * @return true if the bytebuffer is full array slice
+     */
+    public static boolean fullArraySlice(ByteBuffer buffer) {
+        Objects.requireNonNull(buffer);
+        return buffer.hasArray()
+               && buffer.array().length == buffer.remaining();
+    }
+
+    /**
+     * get byte array from the bytebuffer for read only usage
+     *
+     * @param buffer the bytebuffer
+     * @return byte array for read only usage
+     */
+    public static byte[] getByteArrayForReadOnly(ByteBuffer buffer) {
+        Objects.requireNonNull(buffer);
+        byte[] byteArrayForReadOnly;
+        if (fullArraySlice(buffer)) { // not copy, use internal array
+            byteArrayForReadOnly = buffer.array();
+        } else { // copy
+            int len = buffer.remaining();
+            if (len > 0) {
+                byteArrayForReadOnly = new byte[len];
+                buffer.get(byteArrayForReadOnly);
+            } else {
+                byteArrayForReadOnly = new byte[0];
+            }
+        }
+        return byteArrayForReadOnly;
+    }
 
     /**
      * subscribe `publisher` and collect items into {@link OutputStream}
@@ -229,6 +244,8 @@ public final class Util {
      */
     public static void collectIntoStream(Publisher<ByteBuffer> publisher,
                                          OutputStream outputStream) throws IOException {
+        Objects.requireNonNull(publisher);
+        Objects.requireNonNull(outputStream);
         try (var out = outputStream) {
             out.write(collectIntoBytes(publisher));
         }
@@ -252,14 +269,16 @@ public final class Util {
      * @return the result collected by subscriber subscribes `publisher`
      */
     public static byte[] collectIntoBytes(Publisher<ByteBuffer> publisher) {
+        Objects.requireNonNull(publisher);
         return new Flow.Subscriber<ByteBuffer>() {
-            private final CompletableFuture<List<ByteBuffer>> result = new CompletableFuture<>();
+            private final CompletableFuture<List<ByteBuffer>> result =
+                new CompletableFuture<>();
             private final List<ByteBuffer> buffers = new ArrayList<>();
             private Flow.Subscription subscription;
 
             public byte[] collect(Publisher<ByteBuffer> pub) {
                 pub.subscribe(this);
-                var byteBuffers = result.join();
+                var byteBuffers = result.join(); // Blocking!
                 int size = 0;
                 for (ByteBuffer bb : byteBuffers) {
                     size += bb.remaining();
@@ -268,7 +287,7 @@ public final class Util {
                 int start = 0;
                 for (ByteBuffer bb : byteBuffers) {
                     var remaining = bb.remaining();
-                    bb.get(bytes, start, remaining);
+                    bb.get(bytes, start, remaining); // Copy!
                     start += remaining;
                 }
                 return bytes;
@@ -277,7 +296,7 @@ public final class Util {
             @Override
             public void onSubscribe(Flow.Subscription subscription) {
                 this.subscription = subscription;
-                subscription.request(1);
+                this.subscription.request(1);
             }
 
             @Override
@@ -294,9 +313,7 @@ public final class Util {
 
             @Override
             public void onComplete() {
-                var copy = List.copyOf(buffers);
-                buffers.clear();
-                result.complete(copy);
+                result.complete(buffers);
             }
         }.collect(publisher);
     }
