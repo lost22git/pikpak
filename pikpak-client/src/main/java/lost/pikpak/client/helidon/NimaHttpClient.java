@@ -67,7 +67,6 @@ public final class NimaHttpClient implements HttpClient {
                 body.get().subscribe(in);
                 ByteUtil.ioCopy(in, out, 0);
             });
-//            res = req.outputStream(out -> Util.collectIntoStream(body.get(), out));
         } else {
             res = req.request();
         }

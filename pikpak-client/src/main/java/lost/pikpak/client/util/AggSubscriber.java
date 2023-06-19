@@ -5,12 +5,16 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Flow;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class AggSubscriber<T> implements Flow.Subscriber<T> {
     private final CompletableFuture<List<T>> result =
         new CompletableFuture<>();
     private final List<T> buffers = new ArrayList<>();
+    private final Lock lock = new ReentrantLock();
     private Flow.Subscription subscription;
+    private volatile boolean end = false;
 
     public List<T> blockingGet() {
         return this.result.join();
@@ -37,18 +41,44 @@ public class AggSubscriber<T> implements Flow.Subscriber<T> {
 
     @Override
     public void onNext(T item) {
-        buffers.add(item);
-        this.subscription.request(1);
+        var l = this.lock;
+        l.lock();
+        try {
+            if (!this.end) {
+                this.buffers.add(item);
+                this.subscription.request(1);
+            }
+        } finally {
+            l.unlock();
+        }
     }
 
     @Override
     public void onError(Throwable throwable) {
-        buffers.clear();
-        result.completeExceptionally(throwable);
+        var l = this.lock;
+        l.lock();
+        try {
+            if (!this.end) {
+                this.end = true;
+                this.buffers.clear();
+                this.result.completeExceptionally(throwable);
+            }
+        } finally {
+            l.unlock();
+        }
     }
 
     @Override
     public void onComplete() {
-        result.complete(buffers);
+        var l = this.lock;
+        l.lock();
+        try {
+            if (!this.end) {
+                this.end = true;
+                this.result.complete(this.buffers);
+            }
+        } finally {
+            l.unlock();
+        }
     }
 }

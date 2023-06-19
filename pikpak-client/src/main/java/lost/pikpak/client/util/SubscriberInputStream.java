@@ -3,84 +3,137 @@ package lost.pikpak.client.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Flow;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 public final class SubscriberInputStream extends InputStream
     implements Flow.Subscriber<ByteBuffer> {
-    private Node pendingData;
-    private Flow.Subscription subscription;
-    private CompletableFuture<ByteBuffer> dataLoadFut;
-    private volatile boolean end = false;
+    private static final ByteBuffer LOADING = ByteBuffer.wrap(new byte[0]);
+    private final CountDownLatch subLatch = new CountDownLatch(1);
+    private final Lock dataLoadLock = new ReentrantLock();
+    private final Condition dataLoadCond = dataLoadLock.newCondition();
+    private ByteBuffer buffer;
+    private volatile Flow.Subscription subscription;
+    private volatile boolean complete = false;
+    private volatile Throwable error;
+    private volatile ByteBuffer dataLoaded = LOADING;
 
     @Override
-    public int read() throws IOException {
-        int res = -1;
-        Node cur = this.pendingData;
-        for (; cur != null; cur = cur.next()) {
-            var buffer = cur.value();
-            if (buffer.hasRemaining()) {
-                res = buffer.get() & 0xFF;
-                break;
-            }
-        }
-        this.pendingData = cur;
-        if (res != -1) {
-            if (!cur.value().hasRemaining()) {
-                this.pendingData = cur.next();
-            }
-            return res;
-        }
-        // pendingData is null, need load more data
-        for (; ; ) {
-            if (this.end) {
-                return -1;
-            }
-            this.dataLoadFut = new CompletableFuture<>();
-            this.subscription.request(1);
-            try {
-                var data = this.dataLoadFut.get();
-                if (data == null) {
-                    continue;
-                }
-                if (!data.hasRemaining()) {
-                    continue;
-                }
-                // got more data
-                this.pendingData = new Node(null, data);
-                return data.get() & 0xFF;
-            } catch (ExecutionException e) {
-                throw new IOException("load more data error, got an error", e.getCause());
-            } catch (InterruptedException e) {
-                throw new IOException("load more data was interrupted", e);
-            }
-        }
+    public void close() {
+        this.subscription.cancel();
+        this.subscription = null;
+        this.dataLoaded = null;
+        this.buffer = null;
     }
 
     @Override
+    public int read() throws IOException {
+        var b = this.buffer;
+        if (b != null) {
+            assert b.hasRemaining();
+            var res = b.get() & 0xff;
+            if (!b.hasRemaining()) {
+                this.buffer = null;
+            }
+            return res;
+        }
+        //  load more data
+        if (this.subscription == null) {
+            try {
+                this.subLatch.await();
+            } catch (Exception e) {
+                throw new IOException("get subscription error", e);
+            }
+        }
+        for (; ; ) {
+            var lock = this.dataLoadLock;
+            lock.lock();
+            try {
+                if (this.error != null) {
+                    throw new IOException("load more data error, got an error",
+                        this.error);
+                }
+                if (this.complete) {
+                    return -1;
+                }
+
+                this.subscription.request(1);
+
+                var data = this.dataLoaded; // when sync request
+
+                if (!isEnd() && data == LOADING) {
+                    this.dataLoadCond.await(); // when async request
+                    data = this.dataLoaded;
+                }
+                this.dataLoaded = LOADING;
+
+                if (data == null || !data.hasRemaining()) {
+                    continue;
+                }
+
+                // got data
+                var res = data.get() & 0xff;
+                if (data.hasRemaining()) {
+                    this.buffer = data;
+                }
+                return res;
+            } catch (InterruptedException e) {
+                throw new IOException("load more data is interrupted", e);
+            } finally {
+                lock.unlock();
+            }
+        }
+
+    }
+
     public void onSubscribe(Flow.Subscription subscription) {
         this.subscription = subscription;
+        this.subLatch.countDown();
+    }
+
+    private boolean isEnd() {
+        return this.error != null || this.complete;
     }
 
     @Override
     public void onNext(ByteBuffer item) {
-        this.dataLoadFut.complete(item);
+        var lock = this.dataLoadLock;
+        lock.lock();
+        try {
+            if (!isEnd()) {
+                this.dataLoaded = item;
+                this.dataLoadCond.signalAll();
+            }
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
     public void onError(Throwable throwable) {
-        this.dataLoadFut.completeExceptionally(throwable);
+        var lock = this.dataLoadLock;
+        lock.lock();
+        try {
+            this.error = throwable;
+            this.dataLoadCond.signalAll();
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
     public void onComplete() {
-        this.end = true;
-        this.dataLoadFut.complete(null);
+        var lock = this.dataLoadLock;
+        lock.lock();
+        try {
+            this.complete = true;
+            this.dataLoadCond.signalAll();
+        } finally {
+            lock.unlock();
+        }
     }
-
-    record Node(Node next, ByteBuffer value) {
-    }
-
 }
