@@ -1,5 +1,9 @@
 package lost.pikpak.client.cmd;
 
+import java.net.URI;
+import java.net.http.HttpRequest;
+import java.util.Objects;
+import java.util.Optional;
 import lost.pikpak.client.Config;
 import lost.pikpak.client.context.Context;
 import lost.pikpak.client.context.WithContext;
@@ -10,14 +14,8 @@ import lost.pikpak.client.model.InitInfoResult;
 import lost.pikpak.client.token.Token;
 import lost.pikpak.client.util.Util;
 
-import java.net.URI;
-import java.net.http.HttpRequest;
-import java.util.Objects;
-import java.util.Optional;
-
 public interface InitCmd extends Cmd<InitInfoResult>, WithContext {
-    static InitCmd create(Context context,
-                          String action) {
+    static InitCmd create(Context context, String action) {
         return new Impl(context, action);
     }
 
@@ -36,8 +34,7 @@ public interface InitCmd extends Cmd<InitInfoResult>, WithContext {
         private final Exec exec;
         private String action;
 
-        private Impl(Context context,
-                     String action) {
+        private Impl(Context context, String action) {
             Objects.requireNonNull(context);
             Objects.requireNonNull(action);
             this.context = context;
@@ -68,8 +65,7 @@ public interface InitCmd extends Cmd<InitInfoResult>, WithContext {
     }
 
     final class ExecImpl implements Exec {
-        private ExecImpl() {
-        }
+        private ExecImpl() {}
 
         @Override
         public InitInfoResult exec(InitCmd cmd) throws ApiError {
@@ -85,27 +81,28 @@ public interface InitCmd extends Cmd<InitInfoResult>, WithContext {
             var timestamp = "1680261267160";
             var packageName = "mypikpak.com";
             var param = InitInfoParamBuilder.builder()
-                .action(cmd.action())
-                .captchaToken("")
-                .clientId(userConfig.data().extract(Config.Data::clientId).orElse(""))
-                .deviceId(userConfig.data().extract(Config.Data::deviceId).orElse(""))
-                .meta(
-                    InitInfoParamMetaParamBuilder.builder()
-                        .captchaSign(captchaSign)
-                        .timestamp(timestamp)
-                        .packageName(packageName)
-                        .clientVersion(userConfig.data().extract(Config.Data::clientVersion).orElse(""))
-                        .userId(Optional.ofNullable(userConfig.accessToken()).map(Token.AccessToken::sub).orElse(""))
-                        .email(userConfig.username())
-                        .build()
-                )
-                .build();
+                    .action(cmd.action())
+                    .captchaToken("")
+                    .clientId(userConfig.data().extract(Config.Data::clientId).orElse(""))
+                    .deviceId(userConfig.data().extract(Config.Data::deviceId).orElse(""))
+                    .meta(InitInfoParamMetaParamBuilder.builder()
+                            .captchaSign(captchaSign)
+                            .timestamp(timestamp)
+                            .packageName(packageName)
+                            .clientVersion(userConfig
+                                    .data()
+                                    .extract(Config.Data::clientVersion)
+                                    .orElse(""))
+                            .userId(Optional.ofNullable(userConfig.accessToken())
+                                    .map(Token.AccessToken::sub)
+                                    .orElse(""))
+                            .email(userConfig.username())
+                            .build())
+                    .build();
 
             // Request
             var uri = URI.create("https://user.mypikpak.com/v1/shield/captcha/init");
-            var request = HttpRequest.newBuilder()
-                .uri(uri)
-                .POST(Util.jsonBodyPublisher(param));
+            var request = HttpRequest.newBuilder().uri(uri).POST(Util.jsonBodyPublisher(param));
             headers.forEach(request::setHeader);
             return httpClient.send(request.build(), InitInfoResult.class);
         }

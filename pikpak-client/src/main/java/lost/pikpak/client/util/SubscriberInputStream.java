@@ -9,9 +9,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-
-public final class SubscriberInputStream extends InputStream
-    implements Flow.Subscriber<ByteBuffer> {
+public final class SubscriberInputStream extends InputStream implements Flow.Subscriber<ByteBuffer> {
     private static final ByteBuffer LOADING = ByteBuffer.wrap(new byte[0]);
     private final CountDownLatch subLatch = new CountDownLatch(1);
     private final Lock dataLoadLock = new ReentrantLock();
@@ -54,8 +52,7 @@ public final class SubscriberInputStream extends InputStream
             lock.lock();
             try {
                 if (this.error != null) {
-                    throw new IOException("load more data error, got an error",
-                        this.error);
+                    throw new IOException("load more data error, got an error", this.error);
                 }
                 if (this.complete) {
                     return -1;
@@ -87,7 +84,6 @@ public final class SubscriberInputStream extends InputStream
                 lock.unlock();
             }
         }
-
     }
 
     public void onSubscribe(Flow.Subscription subscription) {

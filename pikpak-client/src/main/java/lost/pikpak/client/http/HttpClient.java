@@ -1,19 +1,7 @@
 package lost.pikpak.client.http;
 
-import lost.pikpak.client.Config;
-import lost.pikpak.client.context.Context;
-import lost.pikpak.client.context.WithContext;
-import lost.pikpak.client.enums.HttpHeader;
-import lost.pikpak.client.error.HttpError;
-import lost.pikpak.client.error.InvalidCaptchaTokenError;
-import lost.pikpak.client.error.UnAuthError;
-import lost.pikpak.client.http.HttpResponse.Body;
-import lost.pikpak.client.http.HttpResponse.ErrBody;
-import lost.pikpak.client.http.HttpResponse.OkBody;
-import lost.pikpak.client.http.body.BodyAdapters;
-import lost.pikpak.client.util.ByteUtil;
-import lost.pikpak.client.util.InputStreamPublisher;
-import lost.pikpak.client.util.Util;
+import static java.lang.System.Logger.Level.DEBUG;
+import static java.lang.System.Logger.Level.WARNING;
 
 import java.io.InputStream;
 import java.lang.reflect.Type;
@@ -28,31 +16,36 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Flow;
 import java.util.concurrent.TimeUnit;
-
-import static java.lang.System.Logger.Level.DEBUG;
-import static java.lang.System.Logger.Level.WARNING;
+import lost.pikpak.client.Config.Data;
+import lost.pikpak.client.context.Context;
+import lost.pikpak.client.context.WithContext;
+import lost.pikpak.client.enums.HttpHeader;
+import lost.pikpak.client.error.HttpError;
+import lost.pikpak.client.error.InvalidCaptchaTokenError;
+import lost.pikpak.client.error.UnAuthError;
+import lost.pikpak.client.http.HttpResponse.Body;
+import lost.pikpak.client.http.HttpResponse.ErrBody;
+import lost.pikpak.client.http.HttpResponse.OkBody;
+import lost.pikpak.client.http.body.BodyAdapters;
+import lost.pikpak.client.util.ByteUtil;
+import lost.pikpak.client.util.InputStreamPublisher;
+import lost.pikpak.client.util.Util;
 
 public interface HttpClient extends WithContext {
     System.Logger LOG = System.getLogger(HttpClient.class.getName());
 
     static HttpClient create(Context context) {
-        List<String> implsClassName = List.of(
-            "lost.pikpak.client.helidon.NimaHttpClient",
-            "lost.pikpak.client.reactor.ReactorHttpClient"
-        );
+        List<String> implsClassName =
+                List.of("lost.pikpak.client.helidon.NimaHttpClient", "lost.pikpak.client.reactor.ReactorHttpClient");
         for (var className : implsClassName) {
             if (Util.hasClass(className)) {
                 try {
                     Class<?> cls = Class.forName(className);
-                    return (HttpClient) cls
-                        .getConstructor(new Class[]{Context.class})
-                        .newInstance(context);
+                    return (HttpClient)
+                            cls.getConstructor(new Class[] {Context.class}).newInstance(context);
                 } catch (Exception e) {
                     if (LOG.isLoggable(WARNING)) {
-                        LOG.log(WARNING,
-                            "failed to new http client instance," +
-                            " className=" + className,
-                            e);
+                        LOG.log(WARNING, "failed to new http client instance," + " className=" + className, e);
                     }
                 }
             }
@@ -61,7 +54,6 @@ public interface HttpClient extends WithContext {
         // default impl
         return new HttpClientImpl(context);
     }
-
 
     BodyAdapters bodyAdapters();
 
@@ -98,9 +90,8 @@ public interface HttpClient extends WithContext {
      * @return the response
      * @throws Exception the exception
      */
-    default <T extends Body<V, E>, V, E> HttpResponse<T, V, E> doSend(HttpRequest request,
-                                                                      BodyHandler<T> bodyHandler)
-        throws Exception {
+    default <T extends Body<V, E>, V, E> HttpResponse<T, V, E> doSend(HttpRequest request, BodyHandler<T> bodyHandler)
+            throws Exception {
         try (var res = doSend(request)) {
             var responseInfo = res.responseInfo();
             var resBodySubscriber = bodyHandler.apply(responseInfo);
@@ -109,11 +100,7 @@ public interface HttpClient extends WithContext {
             resBodyPublisher.subscribe(resBodySubscriber);
             T resBody = resBodySubscriber.getBody().toCompletableFuture().get();
             return new HttpResponse<>(
-                request,
-                responseInfo.statusCode(),
-                responseInfo.headers().map(),
-                resBody
-            );
+                    request, responseInfo.statusCode(), responseInfo.headers().map(), resBody);
         }
     }
 
@@ -129,9 +116,8 @@ public interface HttpClient extends WithContext {
      * @return the ok response ( {@link HttpResponse} with {@link OkBody} )
      * @throws HttpError the error if we get error response ( {@link HttpResponse} with {@link ErrBody} )
      */
-    default <T extends Body<V, E>, V, E> HttpResponse<T, V, E> send(HttpRequest request,
-                                                                    BodyHandler<T> bodyHandler)
-        throws HttpError {
+    default <T extends Body<V, E>, V, E> HttpResponse<T, V, E> send(HttpRequest request, BodyHandler<T> bodyHandler)
+            throws HttpError {
 
         // TODO replace these into interceptors ?
 
@@ -177,8 +163,7 @@ public interface HttpClient extends WithContext {
      * @throws HttpError the error if we get error response ( {@link HttpResponse} with {@link ErrBody} )
      */
     @SuppressWarnings("unchecked")
-    default <T> T send(HttpRequest request,
-                       Type bodyType) throws HttpError {
+    default <T> T send(HttpRequest request, Type bodyType) throws HttpError {
 
         // body handler:
         // 200<= status <300 => read body as OkBody<bodyType>
@@ -186,111 +171,120 @@ public interface HttpClient extends WithContext {
         BodyHandler<Body<T, String>> bodyHandler = responseInfo -> {
             int status = responseInfo.statusCode();
             if (200 <= status && status < 300) {
-                var ups = (BodySubscriber<T>) bodyAdapters()
-                    .json()
-                    .reader()
-                    .read(bodyType);
+                var ups = (BodySubscriber<T>) bodyAdapters().json().reader().read(bodyType);
                 return Body.okBodySubscriber(ups);
             } else {
-                var ups = bodyAdapters()
-                    .text()
-                    .reader()
-                    .read(null);
+                var ups = bodyAdapters().text().reader().read(null);
                 return Body.errBodySubscriber(ups);
             }
         };
 
-        return (T) send(
-            request,
-            bodyHandler
-        ).body().value();
+        return (T) send(request, bodyHandler).body().value();
     }
 
     default Map<String, String> commonHeaders() {
         var userConfig = context().userConfig();
         var headers = new HashMap<String, String>();
         var d = userConfig.data();
-        headers.put(HttpHeader.USER_AGENT.getValue(), d.extract(Config.Data::httpUserAgent).orElse(null));
-        headers.put(HttpHeader.REFERER.getValue(), d.extract(Config.Data::httpReferer).map(URI::toString).orElse(null));
-        headers.put(HttpHeader.DEVICE_ID.getValue(), d.extract(Config.Data::deviceId).orElse(null));
-        headers.put(HttpHeader.DEVICE_NAME.getValue(), d.extract(Config.Data::deviceName).orElse(null));
-        headers.put(HttpHeader.DEVICE_MODEL.getValue(), d.extract(Config.Data::deviceModel).orElse(null));
-        headers.put(HttpHeader.DEVICE_SIGN.getValue(), d.extract(Config.Data::deviceSign).orElse(null));
-        headers.put(HttpHeader.CLIENT_ID.getValue(), d.extract(Config.Data::clientId).orElse(null));
-        headers.put(HttpHeader.CLIENT_VERSION.getValue(), d.extract(Config.Data::clientVersion).orElse(null));
-        headers.put(HttpHeader.PLATFORM_VERSION.getValue(), d.extract(Config.Data::platformVersion).orElse(null));
-        headers.put(HttpHeader.OS_VERSION.getValue(), d.extract(Config.Data::osVersion).orElse(null));
-        headers.put(HttpHeader.PROTOCOL_VERSION.getValue(), d.extract(Config.Data::protocolVersion).orElse(null));
-        headers.put(HttpHeader.SDK_VERSION.getValue(), d.extract(Config.Data::sdkVersion).orElse(null));
-        headers.put(HttpHeader.NETWORK_TYPE.getValue(), d.extract(Config.Data::networkType).orElse(null));
-        headers.put(HttpHeader.PROVIDER_NAME.getValue(), d.extract(Config.Data::providerName).orElse(null));
+        headers.put(
+                HttpHeader.USER_AGENT.getValue(), d.extract(Data::httpUserAgent).orElse(null));
+        headers.put(
+                HttpHeader.REFERER.getValue(),
+                d.extract(Data::httpReferer).map(URI::toString).orElse(null));
+        headers.put(HttpHeader.DEVICE_ID.getValue(), d.extract(Data::deviceId).orElse(null));
+        headers.put(
+                HttpHeader.DEVICE_NAME.getValue(), d.extract(Data::deviceName).orElse(null));
+        headers.put(
+                HttpHeader.DEVICE_MODEL.getValue(), d.extract(Data::deviceModel).orElse(null));
+        headers.put(
+                HttpHeader.DEVICE_SIGN.getValue(), d.extract(Data::deviceSign).orElse(null));
+        headers.put(HttpHeader.CLIENT_ID.getValue(), d.extract(Data::clientId).orElse(null));
+        headers.put(
+                HttpHeader.CLIENT_VERSION.getValue(),
+                d.extract(Data::clientVersion).orElse(null));
+        headers.put(
+                HttpHeader.PLATFORM_VERSION.getValue(),
+                d.extract(Data::platformVersion).orElse(null));
+        headers.put(HttpHeader.OS_VERSION.getValue(), d.extract(Data::osVersion).orElse(null));
+        headers.put(
+                HttpHeader.PROTOCOL_VERSION.getValue(),
+                d.extract(Data::protocolVersion).orElse(null));
+        headers.put(
+                HttpHeader.SDK_VERSION.getValue(), d.extract(Data::sdkVersion).orElse(null));
+        headers.put(
+                HttpHeader.NETWORK_TYPE.getValue(), d.extract(Data::networkType).orElse(null));
+        headers.put(
+                HttpHeader.PROVIDER_NAME.getValue(),
+                d.extract(Data::providerName).orElse(null));
 
         headers.put(HttpHeader.CONTENT_TYPE.getValue(), "application/json");
         return headers;
     }
 
-    private void logRequest(String requestId,
-                            HttpRequest request) {
+    private void logRequest(String requestId, HttpRequest request) {
         if (LOG.isLoggable(DEBUG)) {
             var sb = new StringBuilder();
             sb.append("--> APP HTTP[%s]".formatted(requestId)).append("\n");
-            sb.append("--> RequestLine: ").append("\n")
-                .append(request.method())
-                .append(" ")
-                .append(request.uri().toString())
-                .append(" ")
-                .append(request.version())
-                .append("\n");
-            sb.append("--> Headers: ").append("\n")
-                .append(request.headers().toString())
-                .append("\n");
+            sb.append("--> RequestLine: ")
+                    .append("\n")
+                    .append(request.method())
+                    .append(" ")
+                    .append(request.uri().toString())
+                    .append(" ")
+                    .append(request.version())
+                    .append("\n");
+            sb.append("--> Headers: ")
+                    .append("\n")
+                    .append(request.headers().toString())
+                    .append("\n");
             request.bodyPublisher().ifPresent(p -> {
                 var len = p.contentLength();
                 sb.append("--> BodyPublisher contentLength: ").append(len).append("\n");
                 if (len < 0) {
-                    sb.append("""
+                    sb.append(
+                                    """
                         --------------------------------------------------------
                         *NOTE*
                         we got request body `content length < 0`,
                         check your HttpRequest.BodyPublisher.contentLength()
                         if you dont want `Transfer-Encoding: chunked`
                         --------------------------------------------------------
-                        """).append("\n");
+                        """)
+                            .append("\n");
                 }
             });
-            sb.append("--> Body: ").append("\n")
-                .append(request.bodyPublisher()
-                    .map(ByteUtil::collectIntoString)
-                    .orElse("")
-                )
-                .append("\n");
+            sb.append("--> Body: ")
+                    .append("\n")
+                    .append(request.bodyPublisher()
+                            .map(ByteUtil::collectIntoString)
+                            .orElse(""))
+                    .append("\n");
             LOG.log(DEBUG, sb.toString());
         }
     }
 
-    private <T extends Body<V, E>, V, E> void logResponse(String requestId,
-                                                          HttpResponse<T, V, E> response,
-                                                          long startTime) {
+    private <T extends Body<V, E>, V, E> void logResponse(
+            String requestId, HttpResponse<T, V, E> response, long startTime) {
         if (LOG.isLoggable(DEBUG)) {
             var elapsedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
             var sb = new StringBuilder();
             sb.append("<-- APP HTTP[%s] (elapsed time: %dms)".formatted(requestId, elapsedMs))
-                .append("\n");
-            sb.append("<-- StatusLine: ").append("\n")
-                .append(response.request().method())
-                .append(" ")
-                .append(response.request().uri())
-                .append(" ")
-                .append(response.status())
-                .append(" ")
-                .append(response.request().version())
-                .append("\n");
-            sb.append("<-- Headers: ").append("\n")
-                .append(response.headers())
-                .append("\n");
-            sb.append("<-- Body: ").append("\n")
-                .append(response.body()) // TODO
-                .append("\n");
+                    .append("\n");
+            sb.append("<-- StatusLine: ")
+                    .append("\n")
+                    .append(response.request().method())
+                    .append(" ")
+                    .append(response.request().uri())
+                    .append(" ")
+                    .append(response.status())
+                    .append(" ")
+                    .append(response.request().version())
+                    .append("\n");
+            sb.append("<-- Headers: ").append("\n").append(response.headers()).append("\n");
+            sb.append("<-- Body: ")
+                    .append("\n")
+                    .append(response.body()) // TODO
+                    .append("\n");
             LOG.log(DEBUG, sb.toString());
         }
     }

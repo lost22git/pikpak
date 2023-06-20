@@ -2,9 +2,8 @@ package lost.pikpak.client.token;
 
 import io.avaje.jsonb.Json;
 import io.soabase.recordbuilder.core.RecordBuilderFull;
-import lost.pikpak.client.enums.TokenType;
-
 import java.time.OffsetDateTime;
+import lost.pikpak.client.enums.TokenType;
 
 public interface Token {
     String tokenValue();
@@ -28,16 +27,11 @@ public interface Token {
         }
     }
 
-
     @RecordBuilderFull
     @Json(naming = Json.Naming.LowerUnderscore)
     record AccessToken(
-        RefreshToken refreshToken,
-        String tokenValue,
-        TokenType tokenType,
-        String sub,
-        OffsetDateTime expiresAt
-    ) implements Token {
+            RefreshToken refreshToken, String tokenValue, TokenType tokenType, String sub, OffsetDateTime expiresAt)
+            implements Token {
 
         @Override
         public boolean isExpired(OffsetDateTime time) {
@@ -47,11 +41,8 @@ public interface Token {
     }
 
     @RecordBuilderFull
-
     @Json(naming = Json.Naming.LowerUnderscore)
-    record RefreshToken(
-        String tokenValue,
-        TokenType tokenType) implements Token {
+    record RefreshToken(String tokenValue, TokenType tokenType) implements Token {
 
         @Override
         public boolean isExpired(OffsetDateTime time) {
@@ -60,11 +51,7 @@ public interface Token {
     }
 
     @RecordBuilderFull
-    record CaptchaToken(
-        String tokenValue,
-        OffsetDateTime expiresAt
-
-    ) implements Token {
+    record CaptchaToken(String tokenValue, OffsetDateTime expiresAt) implements Token {
 
         public static CaptchaToken createExpired() {
             return new CaptchaToken("", OffsetDateTime.MIN);
@@ -82,5 +69,4 @@ public interface Token {
             return !this.expiresAt.isAfter(time);
         }
     }
-
 }

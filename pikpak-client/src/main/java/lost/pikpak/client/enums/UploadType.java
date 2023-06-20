@@ -5,7 +5,6 @@ import io.avaje.jsonb.Json;
 public enum UploadType {
     UNKNOWN("UNKNOWN"),
     UPLOAD_TYPE_URL("UPLOAD_TYPE_URL"),
-
     ;
 
     final String value;

@@ -1,10 +1,9 @@
 package lost.pikpak.client.http.body.multipart;
 
-import lost.pikpak.client.util.Util;
-
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.util.*;
+import lost.pikpak.client.util.Util;
 
 public interface Part {
 
@@ -28,7 +27,9 @@ public interface Part {
         var sb = new StringBuilder();
         sb.append("form-data;");
         sb.append(" name=").append(Util.quote(name())).append(";");
-        filename().ifPresent(fname -> sb.append(" filename=").append(Util.quote(fname)).append(";"));
+        filename()
+                .ifPresent(fname ->
+                        sb.append(" filename=").append(Util.quote(fname)).append(";"));
         return Util.deleteLastChar(sb).toString();
     }
 
@@ -63,11 +64,8 @@ public interface Part {
         private final Map<String, String> headers;
         private final BodyPublisher body;
 
-        private Impl(String name,
-                     String filename,
-                     String contentType,
-                     Map<String, String> headers,
-                     BodyPublisher body) {
+        private Impl(
+                String name, String filename, String contentType, Map<String, String> headers, BodyPublisher body) {
             Objects.requireNonNull(name);
             Objects.requireNonNull(contentType);
             Objects.requireNonNull(body);
@@ -153,8 +151,7 @@ public interface Part {
             return this.contentType;
         }
 
-        public Builder header(String name,
-                              String value) {
+        public Builder header(String name, String value) {
             Objects.requireNonNull(name);
             Objects.requireNonNull(value);
             this.headers.put(name, value);

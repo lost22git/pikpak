@@ -3,7 +3,6 @@ package lost.pikpak.client.enums;
 import io.avaje.jsonb.Json;
 
 public enum FileCategory {
-
     UNKNOWN("UNKNOWN"),
     VIDEO("VIDEO"),
     OTHER("OTHER"),

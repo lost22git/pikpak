@@ -1,7 +1,6 @@
 package lost.pikpak.client.util;
 
 import io.avaje.jsonb.Jsonb;
-
 import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.net.URL;
@@ -21,14 +20,13 @@ public final class Util {
 
     static {
         JSONB = Jsonb.builder()
-            .failOnUnknown(false)
-            .serializeEmpty(true)
-            .serializeNulls(true)
-            .build();
+                .failOnUnknown(false)
+                .serializeEmpty(true)
+                .serializeNulls(true)
+                .build();
     }
 
-    private Util() {
-    }
+    private Util() {}
 
     public static boolean hasClass(String classname) {
         try {
@@ -55,8 +53,7 @@ public final class Util {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T fromJson(String json,
-                                 Type type) {
+    public static <T> T fromJson(String json, Type type) {
         return (T) JSONB.type(type).fromJson(json);
     }
 
@@ -72,8 +69,7 @@ public final class Util {
         return JSONB.toJsonBytes(obj);
     }
 
-    public static void toJson(Object obj,
-                              OutputStream out) {
+    public static void toJson(Object obj, OutputStream out) {
         JSONB.toJson(out);
     }
 
@@ -158,16 +154,13 @@ public final class Util {
     }
 
     public static <T> BodySubscriber<T> jsonBodySubscriber(Type bodyType) {
-        return BodySubscribers.mapping(
-            BodySubscribers.ofString(StandardCharsets.UTF_8),
-            bodyJson -> {
-                // replace value "" into null
-                // e.g. { "name": "" } -> { "name": null }
-                bodyJson = bodyJson.replace("\"\"", "null");
-                return Util.fromJson(bodyJson, bodyType);
-            });
+        return BodySubscribers.mapping(BodySubscribers.ofString(StandardCharsets.UTF_8), bodyJson -> {
+            // replace value "" into null
+            // e.g. { "name": "" } -> { "name": null }
+            bodyJson = bodyJson.replace("\"\"", "null");
+            return Util.fromJson(bodyJson, bodyType);
+        });
     }
-
 
     /**
      * generate request id
@@ -192,15 +185,13 @@ public final class Util {
     public static void initJUL() {
         var configFile = System.getProperty("java.util.logging.config.file");
         if (configFile == null || configFile.trim().isBlank()) {
-            System.err.println("initJUL: -Djava.util.logging.config.file not specified, " +
-                               "try use JUL config file classpath://logging.properties");
-            configFile = Optional.ofNullable(Util.class.getClassLoader()
-                    .getResource("logging.properties"))
-                .map(URL::getFile)
-                .orElse(null);
+            System.err.println("initJUL: -Djava.util.logging.config.file not specified, "
+                    + "try use JUL config file classpath://logging.properties");
+            configFile = Optional.ofNullable(Util.class.getClassLoader().getResource("logging.properties"))
+                    .map(URL::getFile)
+                    .orElse(null);
             if (configFile == null) {
-                System.err.println(
-                    "initJUL: JUL config file classpath://logging.properties not found.");
+                System.err.println("initJUL: JUL config file classpath://logging.properties not found.");
                 return;
             }
             System.setProperty("java.util.logging.config.file", configFile);
@@ -217,9 +208,8 @@ public final class Util {
      */
     public static void configureJdkHttpClientLog() {
 
-        System.setProperty("jdk.httpclient.HttpClient.log",
-            "headers,content,requests,errors,frames:data");
-//        System.setProperty("jdk.httpclient.HttpClient.log", "all");
-//        System.setProperty("jdk.internal.httpclient.debug", "true");
+        System.setProperty("jdk.httpclient.HttpClient.log", "headers,content,requests,errors,frames:data");
+        //        System.setProperty("jdk.httpclient.HttpClient.log", "all");
+        //        System.setProperty("jdk.internal.httpclient.debug", "true");
     }
 }

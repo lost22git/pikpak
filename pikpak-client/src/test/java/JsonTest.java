@@ -1,5 +1,13 @@
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.avaje.jsonb.Types;
 import io.avaje.jsonb.stream.JsonStream;
+import java.net.URI;
+import java.time.OffsetDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 import lost.pikpak.client.Config;
 import lost.pikpak.client.enums.TokenType;
 import lost.pikpak.client.model.*;
@@ -12,38 +20,28 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.net.URI;
-import java.time.OffsetDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 public class JsonTest {
 
     static EasyRandom easyRandom;
 
     static {
         var params = new EasyRandomParameters()
-            .objectPoolSize(100)
-            .randomizationDepth(3)
-            .collectionSizeRange(3, 5);
+                .objectPoolSize(100)
+                .randomizationDepth(3)
+                .collectionSizeRange(3, 5);
         easyRandom = new EasyRandom(params);
     }
 
     static Stream<Arguments> testDataClasses() {
         return Stream.of(
-            Arguments.of(InitInfoResult.class),
-            Arguments.of(RefreshTokenResult.class),
-            Arguments.of(FileListResult.class),
-            Arguments.of(FileDetailsResult.class),
-            Arguments.of(FileAddResult.class),
-            Arguments.of(SignInParam.class),
-            Arguments.of(SignInResult.class),
-            Arguments.of(Config.class)
-        );
+                Arguments.of(InitInfoResult.class),
+                Arguments.of(RefreshTokenResult.class),
+                Arguments.of(FileListResult.class),
+                Arguments.of(FileDetailsResult.class),
+                Arguments.of(FileAddResult.class),
+                Arguments.of(SignInParam.class),
+                Arguments.of(SignInResult.class),
+                Arguments.of(Config.class));
     }
 
     @ParameterizedTest
@@ -60,7 +58,6 @@ public class JsonTest {
         assertThat(newData).isEqualTo(data);
     }
 
-
     @Test
     void serdeOffsetDateTime() {
         var time = Map.of("time", OffsetDateTime.now());
@@ -72,7 +69,6 @@ public class JsonTest {
         assertThat(newTime).isNotNull();
         assertThat(newTime).isEqualTo(time);
         System.out.println("newTime.get(\"time\") = " + newTime.get("time"));
-
     }
 
     @Test
@@ -91,10 +87,7 @@ public class JsonTest {
         var newTime = Util.fromJson(json, Types.mapOf(OffsetDateTime.class));
 
         assertThat(newTime).isNotNull();
-        assertThat(newTime)
-            .extracting("time")
-            .extracting(Object::toString)
-            .isEqualTo(timeStr);
+        assertThat(newTime).extracting("time").extracting(Object::toString).isEqualTo(timeStr);
     }
 
     @Test
@@ -110,19 +103,18 @@ public class JsonTest {
     @Test
     void serdeToken() {
         var refreshToken = new Token.RefreshToken("refresh_xxx", TokenType.Bearer);
-        var accessToken = new Token.AccessToken(
-            refreshToken,
-            "access_xxx",
-            TokenType.Bearer,
-            "sub_xxx",
-            OffsetDateTime.now());
+        var accessToken =
+                new Token.AccessToken(refreshToken, "access_xxx", TokenType.Bearer, "sub_xxx", OffsetDateTime.now());
 
         var json = Util.toJsonPretty(accessToken);
 
-//        System.out.println("json = " + json);
+        //        System.out.println("json = " + json);
 
-        assertThat(json).contains("access_xxx").contains("sub_xxx").contains("refresh_xxx")
-            .doesNotContain("tokenString");
+        assertThat(json)
+                .contains("access_xxx")
+                .contains("sub_xxx")
+                .contains("refresh_xxx")
+                .doesNotContain("tokenString");
 
         var newAccessToken = Util.fromJson(json, Token.AccessToken.class);
 

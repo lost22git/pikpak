@@ -3,7 +3,6 @@ package lost.pikpak.client.enums;
 import io.avaje.jsonb.Json;
 
 public enum FolderType {
-
     UNKNOWN("UNKNOWN"),
     DOWNLOAD("DOWNLOAD"),
     NORMAL("NORMAL"),

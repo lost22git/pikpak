@@ -1,19 +1,18 @@
 package lost.pikpak.client.http.body;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.lang.reflect.Type;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodySubscriber;
 import java.net.http.HttpResponse.BodySubscribers;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 public final class TextBodyAdapter implements BodyAdapter<String> {
     private final Reader reader = new Reader();
     private final Writer writer = new Writer();
 
-    private TextBodyAdapter() {
-    }
+    private TextBodyAdapter() {}
 
     public static TextBodyAdapter create() {
         return new TextBodyAdapter();

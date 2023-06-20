@@ -1,20 +1,16 @@
 package lost.pikpak.client;
 
 import io.avaje.jsonb.Json;
-import lost.pikpak.client.token.Token;
-
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import lost.pikpak.client.token.Token;
 
 @Json(naming = Json.Naming.LowerUnderscore)
-public record Config(
-    Data data,
-    Map<String, User> users
-) {
+public record Config(Data data, Map<String, User> users) {
     public Config {
         // set default value
         if (data == null) data = new Data(Data.createDefault());
@@ -63,10 +59,7 @@ public record Config(
         private String passwd;
         private Token.AccessToken accessToken;
 
-        public User(String username,
-                    String passwd,
-                    Token.AccessToken accessToken,
-                    Data data) {
+        public User(String username, String passwd, Token.AccessToken accessToken, Data data) {
             Objects.requireNonNull(username);
             this.username = username;
             this.passwd = passwd;
@@ -109,7 +102,10 @@ public record Config(
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             User user = (User) o;
-            return Objects.equals(username, user.username) && Objects.equals(passwd, user.passwd) && Objects.equals(accessToken, user.accessToken) && Objects.equals(data, user.data);
+            return Objects.equals(username, user.username)
+                    && Objects.equals(passwd, user.passwd)
+                    && Objects.equals(accessToken, user.accessToken)
+                    && Objects.equals(data, user.data);
         }
 
         @Override
@@ -119,12 +115,11 @@ public record Config(
 
         @Override
         public String toString() {
-            return "User{" +
-                   "username='" + username + '\'' +
-                   ", passwd='" + passwd + '\'' +
-                   ", accessToken=" + accessToken +
-                   ", data=" + data +
-                   '}';
+            return "User{" + "username='"
+                    + username + '\'' + ", passwd='"
+                    + passwd + '\'' + ", accessToken="
+                    + accessToken + ", data="
+                    + data + '}';
         }
     }
 
@@ -132,6 +127,7 @@ public record Config(
     public static class Data {
         @Json.Ignore
         private Data parent;
+
         private URI proxy;
         private URI httpReferer;
         private String httpUserAgent;
@@ -148,8 +144,7 @@ public record Config(
         private String sdkVersion;
         private String providerName;
 
-        public Data() {
-        }
+        public Data() {}
 
         public Data(Data parent) {
             Objects.requireNonNull(parent);
@@ -157,21 +152,21 @@ public record Config(
         }
 
         private Data(
-            URI proxy,
-            URI httpReferer,
-            String httpUserAgent,
-            String deviceId,
-            String deviceName,
-            String deviceModel,
-            String deviceSign,
-            String clientId,
-            String clientVersion,
-            String networkType,
-            String osVersion,
-            String platformVersion,
-            String protocolVersion,
-            String sdkVersion,
-            String providerName) {
+                URI proxy,
+                URI httpReferer,
+                String httpUserAgent,
+                String deviceId,
+                String deviceName,
+                String deviceModel,
+                String deviceSign,
+                String clientId,
+                String clientVersion,
+                String networkType,
+                String osVersion,
+                String platformVersion,
+                String protocolVersion,
+                String sdkVersion,
+                String providerName) {
             this.proxy = proxy;
             this.httpReferer = httpReferer;
             this.httpUserAgent = httpUserAgent;
@@ -191,29 +186,26 @@ public record Config(
 
         public static Data createDefault() {
             return new Data(
-                null,
-                URI.create("https://mypikpak.com/"),
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 Edg/111.0.1661.39",
-                "a3b5b335867244899c17d6e497be4134",
-                "PC-Chrome",
-                "chrome/111.0.0.0",
-                "wdi10.a3b5b335867244899c17d6e497be4134xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-                "YUMx5nI8ZU8Ap8pm",
-                "1.0.0",
-                "NONE",
-                "Win32",
-                "1",
-                "301",
-                "5.2.0",
-                "NONE"
-            );
+                    null,
+                    URI.create("https://mypikpak.com/"),
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 Edg/111.0.1661.39",
+                    "a3b5b335867244899c17d6e497be4134",
+                    "PC-Chrome",
+                    "chrome/111.0.0.0",
+                    "wdi10.a3b5b335867244899c17d6e497be4134xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+                    "YUMx5nI8ZU8Ap8pm",
+                    "1.0.0",
+                    "NONE",
+                    "Win32",
+                    "1",
+                    "301",
+                    "5.2.0",
+                    "NONE");
         }
-
 
         public Optional<Data> parent() {
             return Optional.ofNullable(this.parent);
         }
-
 
         /**
          * extracting field value hierarchically
@@ -223,8 +215,7 @@ public record Config(
          * @return
          */
         public <T> Optional<T> extract(Function<Data, T> extractFn) {
-            return Optional.ofNullable(extractFn.apply(this))
-                .or(() -> parent().flatMap(e -> e.extract(extractFn)));
+            return Optional.ofNullable(extractFn.apply(this)).or(() -> parent().flatMap(e -> e.extract(extractFn)));
         }
 
         public URI proxy() {
@@ -367,33 +358,61 @@ public record Config(
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             Data data = (Data) o;
-            return Objects.equals(proxy, data.proxy) && Objects.equals(httpReferer, data.httpReferer) && Objects.equals(httpUserAgent, data.httpUserAgent) && Objects.equals(deviceId, data.deviceId) && Objects.equals(deviceName, data.deviceName) && Objects.equals(deviceModel, data.deviceModel) && Objects.equals(deviceSign, data.deviceSign) && Objects.equals(clientId, data.clientId) && Objects.equals(clientVersion, data.clientVersion) && Objects.equals(networkType, data.networkType) && Objects.equals(osVersion, data.osVersion) && Objects.equals(platformVersion, data.platformVersion) && Objects.equals(protocolVersion, data.protocolVersion) && Objects.equals(sdkVersion, data.sdkVersion) && Objects.equals(providerName, data.providerName);
+            return Objects.equals(proxy, data.proxy)
+                    && Objects.equals(httpReferer, data.httpReferer)
+                    && Objects.equals(httpUserAgent, data.httpUserAgent)
+                    && Objects.equals(deviceId, data.deviceId)
+                    && Objects.equals(deviceName, data.deviceName)
+                    && Objects.equals(deviceModel, data.deviceModel)
+                    && Objects.equals(deviceSign, data.deviceSign)
+                    && Objects.equals(clientId, data.clientId)
+                    && Objects.equals(clientVersion, data.clientVersion)
+                    && Objects.equals(networkType, data.networkType)
+                    && Objects.equals(osVersion, data.osVersion)
+                    && Objects.equals(platformVersion, data.platformVersion)
+                    && Objects.equals(protocolVersion, data.protocolVersion)
+                    && Objects.equals(sdkVersion, data.sdkVersion)
+                    && Objects.equals(providerName, data.providerName);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(proxy, httpReferer, httpUserAgent, deviceId, deviceName, deviceModel, deviceSign, clientId, clientVersion, networkType, osVersion, platformVersion, protocolVersion, sdkVersion, providerName);
+            return Objects.hash(
+                    proxy,
+                    httpReferer,
+                    httpUserAgent,
+                    deviceId,
+                    deviceName,
+                    deviceModel,
+                    deviceSign,
+                    clientId,
+                    clientVersion,
+                    networkType,
+                    osVersion,
+                    platformVersion,
+                    protocolVersion,
+                    sdkVersion,
+                    providerName);
         }
 
         @Override
         public String toString() {
-            return "Data{" +
-                   "proxy=" + proxy +
-                   ", httpReferer=" + httpReferer +
-                   ", httpUserAgent='" + httpUserAgent + '\'' +
-                   ", deviceId='" + deviceId + '\'' +
-                   ", deviceName='" + deviceName + '\'' +
-                   ", deviceModel='" + deviceModel + '\'' +
-                   ", deviceSign='" + deviceSign + '\'' +
-                   ", clientId='" + clientId + '\'' +
-                   ", clientVersion='" + clientVersion + '\'' +
-                   ", networkType='" + networkType + '\'' +
-                   ", osVersion='" + osVersion + '\'' +
-                   ", platformVersion='" + platformVersion + '\'' +
-                   ", protocolVersion='" + protocolVersion + '\'' +
-                   ", sdkVersion='" + sdkVersion + '\'' +
-                   ", providerName='" + providerName + '\'' +
-                   '}';
+            return "Data{" + "proxy="
+                    + proxy + ", httpReferer="
+                    + httpReferer + ", httpUserAgent='"
+                    + httpUserAgent + '\'' + ", deviceId='"
+                    + deviceId + '\'' + ", deviceName='"
+                    + deviceName + '\'' + ", deviceModel='"
+                    + deviceModel + '\'' + ", deviceSign='"
+                    + deviceSign + '\'' + ", clientId='"
+                    + clientId + '\'' + ", clientVersion='"
+                    + clientVersion + '\'' + ", networkType='"
+                    + networkType + '\'' + ", osVersion='"
+                    + osVersion + '\'' + ", platformVersion='"
+                    + platformVersion + '\'' + ", protocolVersion='"
+                    + protocolVersion + '\'' + ", sdkVersion='"
+                    + sdkVersion + '\'' + ", providerName='"
+                    + providerName + '\'' + '}';
         }
     }
 }

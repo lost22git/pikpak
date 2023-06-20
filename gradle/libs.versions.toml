@@ -11,8 +11,9 @@ junit = "5.10.0-M1"
 plugin-jmh = "0.6.6"
 plugin-jmhReport = "0.9.0"
 plugin-nativeimage = "0.9.16"
+plugin-palantir = "2.33.0"
 plugin-shadow = "7.1.2"
-plugin-spotbug = "5.0.14"
+plugin-spotless = "6.19.0"
 plugin-version-catalog-update = "0.8.0"
 plugin-versions = "0.46.0"
 reactor = "2022.0.8"
@@ -51,7 +52,8 @@ junit = [
 jmh = { id = "me.champeau.jmh", version.ref = "plugin-jmh" }
 jmhReport = { id = "io.morethan.jmhreport", version.ref = "plugin-jmhReport" }
 nativeimage = { id = "org.graalvm.buildtools.native", version.ref = "plugin-nativeimage" }
+palantir-format = { id = "com.palantir.java-format", version.ref = "plugin-palantir" }
 shadow = { id = "com.github.johnrengelman.shadow", version.ref = "plugin-shadow" }
-spotbug = { id = "com.github.spotbugs", version.ref = "plugin-spotbug" }
+spotless = { id = "com.diffplug.spotless", version.ref = "plugin-spotless" }
 version-catalog-update = { id = "nl.littlerobots.version-catalog-update", version.ref = "plugin-version-catalog-update" }
 versions = { id = "com.github.ben-manes.versions", version.ref = "plugin-versions" }

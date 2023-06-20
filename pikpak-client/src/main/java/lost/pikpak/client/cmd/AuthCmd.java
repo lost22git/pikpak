@@ -1,5 +1,10 @@
 package lost.pikpak.client.cmd;
 
+import java.net.URI;
+import java.net.http.HttpRequest;
+import java.time.OffsetDateTime;
+import java.util.Objects;
+import java.util.Optional;
 import lost.pikpak.client.Config;
 import lost.pikpak.client.context.Context;
 import lost.pikpak.client.context.WithContext;
@@ -11,12 +16,6 @@ import lost.pikpak.client.model.RefreshTokenResult;
 import lost.pikpak.client.token.Token;
 import lost.pikpak.client.token.TokenAccessTokenBuilder;
 import lost.pikpak.client.util.Util;
-
-import java.net.URI;
-import java.net.http.HttpRequest;
-import java.time.OffsetDateTime;
-import java.util.Objects;
-import java.util.Optional;
 
 public interface AuthCmd extends Cmd<Void>, WithContext {
     static AuthCmd create(Context context) {
@@ -47,25 +46,26 @@ public interface AuthCmd extends Cmd<Void>, WithContext {
                 updateAccessToken(startTime, res);
                 return null;
             } catch (Exception e) {
-                throw new RefreshTokenError(this.context.userConfig().username(),
-                    Optional.ofNullable(this.context.userConfig().accessToken())
-                        .map(Token.AccessToken::refreshToken).orElse(null),
-                    e);
+                throw new RefreshTokenError(
+                        this.context.userConfig().username(),
+                        Optional.ofNullable(this.context.userConfig().accessToken())
+                                .map(Token.AccessToken::refreshToken)
+                                .orElse(null),
+                        e);
             }
         }
 
-        private void updateAccessToken(OffsetDateTime startTime,
-                                       RefreshTokenResult res) {
+        private void updateAccessToken(OffsetDateTime startTime, RefreshTokenResult res) {
             var refreshToken = new Token.RefreshToken(res.refreshToken(), TokenType.Bearer);
             // 提前 60s 失效
             var expiresAt = startTime.plusSeconds(res.expiresIn()).minusSeconds(60);
             var accessToken = TokenAccessTokenBuilder.builder()
-                .tokenValue(res.accessToken())
-                .tokenType(TokenType.Bearer)
-                .sub(res.sub())
-                .expiresAt(expiresAt)
-                .refreshToken(refreshToken)
-                .build();
+                    .tokenValue(res.accessToken())
+                    .tokenType(TokenType.Bearer)
+                    .sub(res.sub())
+                    .expiresAt(expiresAt)
+                    .refreshToken(refreshToken)
+                    .build();
             this.context.userConfig().setAccessToken(accessToken);
         }
 
@@ -76,8 +76,7 @@ public interface AuthCmd extends Cmd<Void>, WithContext {
     }
 
     final class ExecImpl implements Exec {
-        private ExecImpl() {
-        }
+        private ExecImpl() {}
 
         @Override
         public RefreshTokenResult exec(AuthCmd cmd) throws ApiError {
@@ -88,20 +87,19 @@ public interface AuthCmd extends Cmd<Void>, WithContext {
             var headers = httpClient.commonHeaders();
             // Request Body
             var refreshTokenValue = Optional.ofNullable(userConfig.accessToken())
-                .map(Token.AccessToken::refreshToken)
-                .map(Token.RefreshToken::tokenValue).orElse("");
+                    .map(Token.AccessToken::refreshToken)
+                    .map(Token.RefreshToken::tokenValue)
+                    .orElse("");
             var clientId = userConfig.data().extract(Config.Data::clientId).orElse("");
             var param = RefreshTokenParamBuilder.builder()
-                .clientId(clientId)
-                .grantType("refresh_token")
-                .refreshToken(refreshTokenValue)
-                .build();
+                    .clientId(clientId)
+                    .grantType("refresh_token")
+                    .refreshToken(refreshTokenValue)
+                    .build();
 
             // Request
             var uri = URI.create("https://user.mypikpak.com/v1/auth/token");
-            var request = HttpRequest.newBuilder()
-                .uri(uri)
-                .POST(Util.jsonBodyPublisher(param));
+            var request = HttpRequest.newBuilder().uri(uri).POST(Util.jsonBodyPublisher(param));
             headers.forEach(request::setHeader);
             return httpClient.send(request.build(), RefreshTokenResult.class);
         }

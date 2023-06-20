@@ -1,5 +1,10 @@
 package lost.pikpak.client.cmd;
 
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpRequest;
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 import lost.pikpak.client.context.Context;
 import lost.pikpak.client.context.WithContext;
 import lost.pikpak.client.enums.HttpHeader;
@@ -11,12 +16,6 @@ import lost.pikpak.client.model.FileListResult;
 import lost.pikpak.client.token.RequireAccessToken;
 import lost.pikpak.client.token.RequireCaptchaToken;
 import lost.pikpak.client.util.Util;
-
-import java.net.URI;
-import java.net.URLEncoder;
-import java.net.http.HttpRequest;
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 
 public interface FileListCmd extends Cmd<FileListResult>, WithContext, RequireCaptchaToken, RequireAccessToken {
     static FileListCmd create(Context context) {
@@ -153,8 +152,7 @@ public interface FileListCmd extends Cmd<FileListResult>, WithContext, RequireCa
     }
 
     final class ExecImpl implements Exec {
-        private ExecImpl() {
-        }
+        private ExecImpl() {}
 
         @Override
         public FileListResult exec(FileListCmd cmd) throws ApiError {
@@ -162,19 +160,24 @@ public interface FileListCmd extends Cmd<FileListResult>, WithContext, RequireCa
 
             // Headers
             var headers = httpClient.commonHeaders();
-            headers.put(HttpHeader.AUTHORIZATION.getValue(), cmd.requireAccessToken().tokenString());
-            headers.put(HttpHeader.CAPTCHA_TOKEN.getValue(), cmd.requireCaptchaToken().tokenValue());
+            headers.put(
+                    HttpHeader.AUTHORIZATION.getValue(),
+                    cmd.requireAccessToken().tokenString());
+            headers.put(
+                    HttpHeader.CAPTCHA_TOKEN.getValue(),
+                    cmd.requireCaptchaToken().tokenValue());
             // QueryParams
             var param = FileListParamBuilder.builder()
-                .limit(cmd.limit())
-                .pageToken(cmd.pageToken())
-                .parentId(cmd.parentId())
-                .sortOrder(cmd.sortOrder())
-                .thumbnailSize(cmd.thumbnailSize())
-                .withAudit(cmd.withAudit())
-                .build();
+                    .limit(cmd.limit())
+                    .pageToken(cmd.pageToken())
+                    .parentId(cmd.parentId())
+                    .sortOrder(cmd.sortOrder())
+                    .thumbnailSize(cmd.thumbnailSize())
+                    .withAudit(cmd.withAudit())
+                    .build();
 
-            var filterParam = """
+            var filterParam =
+                    """
                 {
                    // "kind": {
                    //     "eq": "drive#file"
@@ -192,10 +195,8 @@ public interface FileListCmd extends Cmd<FileListResult>, WithContext, RequireCa
 
             // Request
             var uri = URI.create("https://api-drive.mypikpak.com/drive/v1/files?%s&filters=%s"
-                .formatted(param.asQueryString(), filterParamEncoded));
-            var requestBuilder = HttpRequest.newBuilder()
-                .uri(uri)
-                .GET();
+                    .formatted(param.asQueryString(), filterParamEncoded));
+            var requestBuilder = HttpRequest.newBuilder().uri(uri).GET();
             headers.forEach(requestBuilder::setHeader);
             var request = requestBuilder.build();
             return httpClient.send(request, FileListResult.class);

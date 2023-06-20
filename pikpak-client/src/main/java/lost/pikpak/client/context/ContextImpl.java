@@ -1,13 +1,12 @@
 package lost.pikpak.client.context;
 
+import java.util.Objects;
 import lost.pikpak.client.Config;
 import lost.pikpak.client.PikPakClient;
 import lost.pikpak.client.cmd.*;
 import lost.pikpak.client.http.HttpClient;
 import lost.pikpak.client.token.AccessTokenProvider;
 import lost.pikpak.client.token.CaptchaTokenProvider;
-
-import java.util.Objects;
 
 final class ContextImpl implements Context {
     private final PikPakClient pikpak;
@@ -20,8 +19,7 @@ final class ContextImpl implements Context {
     // TODO close resource
     private final CaptchaTokenProvider captchaTokenProvider;
 
-    public ContextImpl(PikPakClient pikpak,
-                       Config.User userConfig) {
+    public ContextImpl(PikPakClient pikpak, Config.User userConfig) {
         Objects.requireNonNull(pikpak);
         Objects.requireNonNull(userConfig);
         this.pikpak = pikpak;
@@ -56,7 +54,6 @@ final class ContextImpl implements Context {
         return this.captchaTokenProvider;
     }
 
-
     @Override
     public InitCmd initCmd(String action) {
         return InitCmd.create(this, action);
@@ -86,5 +83,4 @@ final class ContextImpl implements Context {
     public FileDetailsCmd fileDetailsCmd(String fileId) {
         return FileDetailsCmd.create(this, fileId);
     }
-
 }

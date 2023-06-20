@@ -15,8 +15,7 @@ public final class InputStreamPublisher implements Flow.Publisher<List<ByteBuffe
         this(inputStream, 0);
     }
 
-    public InputStreamPublisher(InputStream inputStream,
-                                int bufferSize) {
+    public InputStreamPublisher(InputStream inputStream, int bufferSize) {
         this.is = Objects.requireNonNull(inputStream);
         this.bufferSize = Math.max(bufferSize, 8 * 1024);
     }
@@ -26,15 +25,13 @@ public final class InputStreamPublisher implements Flow.Publisher<List<ByteBuffe
         subscriber.onSubscribe(new Sub(this.is, this.bufferSize, subscriber));
     }
 
-    final static class Sub implements Flow.Subscription {
+    static final class Sub implements Flow.Subscription {
         private final InputStream is;
         private final Flow.Subscriber<? super List<ByteBuffer>> subscriber;
 
         private byte[] buffer;
 
-        Sub(InputStream is,
-            int bufferSize,
-            Flow.Subscriber<? super List<ByteBuffer>> subscriber) {
+        Sub(InputStream is, int bufferSize, Flow.Subscriber<? super List<ByteBuffer>> subscriber) {
             this.is = is;
             this.buffer = new byte[bufferSize];
             this.subscriber = subscriber;

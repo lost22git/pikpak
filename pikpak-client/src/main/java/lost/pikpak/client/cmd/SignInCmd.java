@@ -1,5 +1,9 @@
 package lost.pikpak.client.cmd;
 
+import java.net.URI;
+import java.net.http.HttpRequest;
+import java.time.OffsetDateTime;
+import java.util.Objects;
 import lost.pikpak.client.Config;
 import lost.pikpak.client.context.Context;
 import lost.pikpak.client.context.WithContext;
@@ -13,11 +17,6 @@ import lost.pikpak.client.token.RequireCaptchaToken;
 import lost.pikpak.client.token.Token;
 import lost.pikpak.client.token.TokenAccessTokenBuilder;
 import lost.pikpak.client.util.Util;
-
-import java.net.URI;
-import java.net.http.HttpRequest;
-import java.time.OffsetDateTime;
-import java.util.Objects;
 
 public interface SignInCmd extends Cmd<Void>, WithContext, RequireCaptchaToken {
 
@@ -58,19 +57,17 @@ public interface SignInCmd extends Cmd<Void>, WithContext, RequireCaptchaToken {
             }
         }
 
-        private void updateAccessToken(
-            OffsetDateTime startTime,
-            SignInResult res) {
+        private void updateAccessToken(OffsetDateTime startTime, SignInResult res) {
             var refreshToken = new Token.RefreshToken(res.refreshToken(), TokenType.Bearer);
             // 提前 60s 失效
             var expiresAt = startTime.plusSeconds(res.expiresIn()).minusSeconds(60);
             var accessToken = TokenAccessTokenBuilder.builder()
-                .tokenValue(res.accessToken())
-                .tokenType(TokenType.Bearer)
-                .sub(res.sub())
-                .expiresAt(expiresAt)
-                .refreshToken(refreshToken)
-                .build();
+                    .tokenValue(res.accessToken())
+                    .tokenType(TokenType.Bearer)
+                    .sub(res.sub())
+                    .expiresAt(expiresAt)
+                    .refreshToken(refreshToken)
+                    .build();
             this.context.userConfig().setAccessToken(accessToken);
         }
 
@@ -78,12 +75,10 @@ public interface SignInCmd extends Cmd<Void>, WithContext, RequireCaptchaToken {
         public Context context() {
             return this.context;
         }
-
     }
 
     final class ExecImpl implements SignInCmd.Exec {
-        private ExecImpl() {
-        }
+        private ExecImpl() {}
 
         @Override
         public SignInResult exec(SignInCmd cmd) throws ApiError {
@@ -92,25 +87,24 @@ public interface SignInCmd extends Cmd<Void>, WithContext, RequireCaptchaToken {
 
             // Headers
             var headers = httpClient.commonHeaders();
-            headers.put(HttpHeader.CAPTCHA_TOKEN.getValue(), cmd.requireCaptchaToken().tokenValue());
+            headers.put(
+                    HttpHeader.CAPTCHA_TOKEN.getValue(),
+                    cmd.requireCaptchaToken().tokenValue());
             // Body
             var username = userConfig.username();
             var passwd = userConfig.passwd();
             var clientId = userConfig.data().extract(Config.Data::clientId).orElse("");
             var param = SignInParamBuilder.builder()
-                .username(username)
-                .password(passwd)
-                .clientId(clientId)
-                .build();
+                    .username(username)
+                    .password(passwd)
+                    .clientId(clientId)
+                    .build();
 
             // Request
             var uri = URI.create("https://user.mypikpak.com/v1/auth/signin");
-            var request = HttpRequest.newBuilder()
-                .uri(uri)
-                .POST(Util.jsonBodyPublisher(param));
+            var request = HttpRequest.newBuilder().uri(uri).POST(Util.jsonBodyPublisher(param));
             headers.forEach(request::setHeader);
             return httpClient.send(request.build(), SignInResult.class);
         }
-
     }
 }

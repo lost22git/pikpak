@@ -3,7 +3,6 @@ package lost.pikpak.client.enums;
 import io.avaje.jsonb.Json;
 
 public enum ThumbnailSize {
-
     UNKNOWN("UNKNOWN"),
     SIZE_MEDIUM("SIZE_MEDIUM"),
     ;

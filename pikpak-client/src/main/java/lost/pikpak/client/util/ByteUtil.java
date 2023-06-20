@@ -19,15 +19,11 @@ public class ByteUtil {
      * @param bufferSize   buffer size, fallback to 8k if value < 8k
      * @throws IOException the error
      */
-    public static void ioCopy(InputStream inputStream,
-                              OutputStream outputStream,
-                              int bufferSize) throws IOException {
+    public static void ioCopy(InputStream inputStream, OutputStream outputStream, int bufferSize) throws IOException {
         Objects.requireNonNull(inputStream);
         Objects.requireNonNull(outputStream);
-        try (
-            var in = inputStream;
-            var out = outputStream
-        ) {
+        try (var in = inputStream;
+                var out = outputStream) {
             var size = Math.max(bufferSize, 8 * 1024);
             var buffer = new byte[size];
             for (; ; ) {
@@ -46,8 +42,7 @@ public class ByteUtil {
      */
     public static boolean fullArraySlice(ByteBuffer buffer) {
         Objects.requireNonNull(buffer);
-        return buffer.hasArray()
-               && buffer.array().length == buffer.remaining();
+        return buffer.hasArray() && buffer.array().length == buffer.remaining();
     }
 
     /**
@@ -80,8 +75,8 @@ public class ByteUtil {
      * @param outputStream the output stream, it will be close
      * @throws IOException
      */
-    public static void collectIntoStream(Flow.Publisher<ByteBuffer> publisher,
-                                         OutputStream outputStream) throws IOException {
+    public static void collectIntoStream(Flow.Publisher<ByteBuffer> publisher, OutputStream outputStream)
+            throws IOException {
         Objects.requireNonNull(publisher);
         Objects.requireNonNull(outputStream);
         try (var out = outputStream) {

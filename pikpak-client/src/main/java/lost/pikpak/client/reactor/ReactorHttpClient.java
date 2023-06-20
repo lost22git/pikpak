@@ -1,15 +1,12 @@
 package lost.pikpak.client.reactor;
 
+import static java.lang.System.Logger.Level.DEBUG;
+import static java.lang.System.Logger.Level.INFO;
+import static reactor.netty.transport.ProxyProvider.Proxy.HTTP;
+
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.logging.LogLevel;
-import lost.pikpak.client.Config;
-import lost.pikpak.client.context.Context;
-import lost.pikpak.client.http.HttpClient;
-import lost.pikpak.client.http.body.BodyAdapters;
-import reactor.adapter.JdkFlowAdapter;
-import reactor.netty.transport.logging.AdvancedByteBufFormat;
-
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.net.ProtocolException;
@@ -22,14 +19,15 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Flow;
-
-import static java.lang.System.Logger.Level.DEBUG;
-import static java.lang.System.Logger.Level.INFO;
-import static reactor.netty.transport.ProxyProvider.Proxy.HTTP;
+import lost.pikpak.client.Config;
+import lost.pikpak.client.context.Context;
+import lost.pikpak.client.http.HttpClient;
+import lost.pikpak.client.http.body.BodyAdapters;
+import reactor.adapter.JdkFlowAdapter;
+import reactor.netty.transport.logging.AdvancedByteBufFormat;
 
 public final class ReactorHttpClient implements HttpClient {
-    private static final System.Logger LOG =
-        System.getLogger(ReactorHttpClient.class.getName());
+    private static final System.Logger LOG = System.getLogger(ReactorHttpClient.class.getName());
     private final Context context;
     private final BodyAdapters bodyAdapters;
 
@@ -41,10 +39,8 @@ public final class ReactorHttpClient implements HttpClient {
 
         var httpClient = reactor.netty.http.client.HttpClient.create();
         // logging
-        httpClient = httpClient.wiretap(
-            ReactorHttpClient.class.getName(),
-            LogLevel.DEBUG,
-            AdvancedByteBufFormat.TEXTUAL);
+        httpClient =
+                httpClient.wiretap(ReactorHttpClient.class.getName(), LogLevel.DEBUG, AdvancedByteBufFormat.TEXTUAL);
         // proxy
         var proxy = context.userConfig().data().extract(Config.Data::proxy);
         if (proxy.isPresent()) {
@@ -52,8 +48,8 @@ public final class ReactorHttpClient implements HttpClient {
             if (LOG.isLoggable(DEBUG)) {
                 LOG.log(DEBUG, "configuring proxy=" + p);
             }
-            httpClient = httpClient.proxy(opt ->
-                opt.type(HTTP).host(p.getHost()).port(p.getPort()));
+            httpClient =
+                    httpClient.proxy(opt -> opt.type(HTTP).host(p.getHost()).port(p.getPort()));
         }
         this.httpClient = httpClient;
 
@@ -75,12 +71,11 @@ public final class ReactorHttpClient implements HttpClient {
     @Override
     public <T extends Response> T doSend(HttpRequest request) throws Exception {
         var resReceiver = this.httpClient
-            .headers(h -> request.headers().map().forEach(h::add))
-            .request(HttpMethod.valueOf(request.method()))
-            .uri(request.uri())
-            .send(JdkFlowAdapter.flowPublisherToFlux(
-                    request.bodyPublisher().orElse(BodyPublishers.noBody()))
-                .map(Unpooled::wrappedBuffer));
+                .headers(h -> request.headers().map().forEach(h::add))
+                .request(HttpMethod.valueOf(request.method()))
+                .uri(request.uri())
+                .send(JdkFlowAdapter.flowPublisherToFlux(request.bodyPublisher().orElse(BodyPublishers.noBody()))
+                        .map(Unpooled::wrappedBuffer));
         var res = resReceiver.response().block();
         var resContent = resReceiver.responseContent();
 
@@ -88,8 +83,7 @@ public final class ReactorHttpClient implements HttpClient {
         return (T) new Response() {
 
             @Override
-            public void close() throws Exception {
-            }
+            public void close() throws Exception {}
 
             @Override
             public InputStream bodyInputStream() {
@@ -127,10 +121,7 @@ public final class ReactorHttpClient implements HttpClient {
                             case 1 -> Version.HTTP_1_1;
                             case 2 -> Version.HTTP_2;
                             default -> throw new UncheckedIOException(
-                                new ProtocolException(
-                                    "unsupported http protocol version: "
-                                    + majorVersion)
-                            );
+                                    new ProtocolException("unsupported http protocol version: " + majorVersion));
                         };
                     }
                 };

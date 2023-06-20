@@ -1,13 +1,12 @@
 package lost.pikpak.client.http.body.multipart;
 
-import lost.pikpak.client.http.body.BodyAdapter;
-
 import java.lang.reflect.Type;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
+import lost.pikpak.client.http.body.BodyAdapter;
 
 /**
  * <pre>
@@ -34,8 +33,7 @@ public final class MultipartBodyAdapter implements BodyAdapter<Multipart> {
     private final Reader reader = new Reader();
     private final Writer writer = new Writer();
 
-    private MultipartBodyAdapter() {
-    }
+    private MultipartBodyAdapter() {}
 
     public static MultipartBodyAdapter create() {
         return new MultipartBodyAdapter();

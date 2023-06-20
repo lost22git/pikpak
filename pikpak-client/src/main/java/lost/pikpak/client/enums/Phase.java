@@ -3,7 +3,6 @@ package lost.pikpak.client.enums;
 import io.avaje.jsonb.Json;
 
 public enum Phase {
-
     UNKNOWN("UNKNOWN"),
     PHASE_TYPE_PENDING("PHASE_TYPE_PENDING"),
     PHASE_TYPE_COMPLETE("PHASE_TYPE_COMPLETE"),

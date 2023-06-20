@@ -18,7 +18,6 @@ public enum HttpHeader {
     PROTOCOL_VERSION("x-protocol-version"),
     SDK_VERSION("x-sdk-version"),
     PROVIDER_NAME("x-provider-name"),
-
     ;
 
     final String value;

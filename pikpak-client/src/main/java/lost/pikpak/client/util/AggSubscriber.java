@@ -9,8 +9,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class AggSubscriber<T> implements Flow.Subscriber<T> {
-    private final CompletableFuture<List<T>> result =
-        new CompletableFuture<>();
+    private final CompletableFuture<List<T>> result = new CompletableFuture<>();
     private final List<T> buffers = new ArrayList<>();
     private final Lock lock = new ReentrantLock();
     private Flow.Subscription subscription;
@@ -22,14 +21,13 @@ public class AggSubscriber<T> implements Flow.Subscriber<T> {
 
     public CompletionStage<List<T>> asyncGet() {
         CompletableFuture<List<T>> res = new CompletableFuture<>();
-        this.result
-            .whenComplete((v, e) -> {
-                if (e != null) {
-                    res.completeExceptionally(e);
-                } else {
-                    res.complete(v);
-                }
-            });
+        this.result.whenComplete((v, e) -> {
+            if (e != null) {
+                res.completeExceptionally(e);
+            } else {
+                res.complete(v);
+            }
+        });
         return res;
     }
 

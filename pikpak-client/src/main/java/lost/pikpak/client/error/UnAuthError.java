@@ -8,8 +8,7 @@ public final class UnAuthError extends ApiError {
         this.username = username;
     }
 
-    public UnAuthError(String username,
-                       Throwable cause) {
+    public UnAuthError(String username, Throwable cause) {
         super("username=" + username, cause);
         this.username = username;
     }

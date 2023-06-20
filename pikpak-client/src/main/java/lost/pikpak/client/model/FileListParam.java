@@ -1,21 +1,18 @@
 package lost.pikpak.client.model;
 
 import io.soabase.recordbuilder.core.RecordBuilderFull;
+import java.util.ArrayList;
 import lost.pikpak.client.enums.SortOrder;
 import lost.pikpak.client.enums.ThumbnailSize;
 
-import java.util.ArrayList;
-
 @RecordBuilderFull
 public record FileListParam(
-    ThumbnailSize thumbnailSize,
-    int limit,
-    String pageToken,
-    String parentId,
-    boolean withAudit,
-    SortOrder sortOrder
-
-) {
+        ThumbnailSize thumbnailSize,
+        int limit,
+        String pageToken,
+        String parentId,
+        boolean withAudit,
+        SortOrder sortOrder) {
 
     public String asQueryString() {
         var list = new ArrayList<String>();

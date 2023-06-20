@@ -3,7 +3,6 @@ package lost.pikpak.client.enums;
 import io.avaje.jsonb.Json;
 
 public enum SortOrder {
-
     UNKNOWN("UNKNOWN"),
     MODIFY_TIME_DESC("MODIFY_TIME_DESC"),
     ;

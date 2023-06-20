@@ -1,13 +1,14 @@
+import static org.assertj.core.api.Assertions.assertThat;
+
 import lost.pikpak.client.util.Util;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class UtilTest {
 
     @Test
     void dropJsonExtraWhitespace() {
-        var json = """
+        var json =
+                """
                 {
                     "name": "\"video \' xyz \' \".mp4",
                     "width": 1080,
@@ -21,7 +22,8 @@ public class UtilTest {
 
     @Test
     void dropJsonSingleLineComment() {
-        var json = """
+        var json =
+                """
             {
                 "name": "\"video \' xyz \' \".mp4", // sdfs
                 "width": 1080,
@@ -35,7 +37,8 @@ public class UtilTest {
 
     @Test
     void compactJson() {
-        var json = """
+        var json =
+                """
             {
                 "name": "\"video \' xyz \' \".mp4", // sdfs
                 "width": 1080,

@@ -12,7 +12,6 @@ public enum Kind {
     URL("upload#url"),
 
     TASK("drive#task"),
-
     ;
 
     final String value;

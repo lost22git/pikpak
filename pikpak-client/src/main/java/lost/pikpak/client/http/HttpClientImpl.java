@@ -1,9 +1,7 @@
 package lost.pikpak.client.http;
 
-import lost.pikpak.client.Config;
-import lost.pikpak.client.context.Context;
-import lost.pikpak.client.http.HttpResponse.Body;
-import lost.pikpak.client.http.body.BodyAdapters;
+import static java.lang.System.Logger.Level.DEBUG;
+import static java.lang.System.Logger.Level.INFO;
 
 import java.net.InetSocketAddress;
 import java.net.ProxySelector;
@@ -11,13 +9,13 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandler;
 import java.util.Objects;
 import java.util.concurrent.Executors;
-
-import static java.lang.System.Logger.Level.DEBUG;
-import static java.lang.System.Logger.Level.INFO;
+import lost.pikpak.client.Config;
+import lost.pikpak.client.context.Context;
+import lost.pikpak.client.http.HttpResponse.Body;
+import lost.pikpak.client.http.body.BodyAdapters;
 
 final class HttpClientImpl implements HttpClient {
-    private static final System.Logger LOG =
-        System.getLogger(HttpClientImpl.class.getName());
+    private static final System.Logger LOG = System.getLogger(HttpClientImpl.class.getName());
     private final Context context;
     private final java.net.http.HttpClient jdkHttpClient;
     private final BodyAdapters bodyAdapters;
@@ -32,8 +30,7 @@ final class HttpClientImpl implements HttpClient {
         }
     }
 
-    private static void configureProxy(java.net.http.HttpClient.Builder builder,
-                                       Config.User userConfig) {
+    private static void configureProxy(java.net.http.HttpClient.Builder builder, Config.User userConfig) {
         var proxy = userConfig.data().extract(Config.Data::proxy);
         if (proxy.isPresent()) {
             var p = proxy.get();
@@ -66,14 +63,9 @@ final class HttpClientImpl implements HttpClient {
     }
 
     @Override
-    public <T extends Body<V, E>, V, E> HttpResponse<T, V, E> doSend(HttpRequest request,
-                                                                     BodyHandler<T> bodyHandler) throws Exception {
+    public <T extends Body<V, E>, V, E> HttpResponse<T, V, E> doSend(HttpRequest request, BodyHandler<T> bodyHandler)
+            throws Exception {
         var res = this.jdkHttpClient.send(request, bodyHandler);
-        return new HttpResponse<>(
-            request,
-            res.statusCode(),
-            res.headers().map(),
-            res.body()
-        );
+        return new HttpResponse<>(request, res.statusCode(), res.headers().map(), res.body());
     }
 }

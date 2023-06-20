@@ -3,7 +3,6 @@ package lost.pikpak.client.enums;
 import io.avaje.jsonb.Json;
 
 public enum AuditStatus {
-
     UNKNOWN("UNKNOWN"),
     STATUS_OK("STATUS_OK"),
     ;

@@ -1,5 +1,8 @@
 package lost.pikpak.client.cmd;
 
+import java.net.URI;
+import java.net.http.HttpRequest;
+import java.util.Objects;
 import lost.pikpak.client.context.Context;
 import lost.pikpak.client.context.WithContext;
 import lost.pikpak.client.enums.HttpHeader;
@@ -8,14 +11,9 @@ import lost.pikpak.client.model.FileDetailsResult;
 import lost.pikpak.client.token.RequireAccessToken;
 import lost.pikpak.client.token.RequireCaptchaToken;
 
-import java.net.URI;
-import java.net.http.HttpRequest;
-import java.util.Objects;
-
 public interface FileDetailsCmd extends Cmd<FileDetailsResult>, WithContext, RequireCaptchaToken, RequireAccessToken {
 
-    static FileDetailsCmd create(Context context,
-                                 String fileId) {
+    static FileDetailsCmd create(Context context, String fileId) {
         return new Impl(context, fileId);
     }
 
@@ -39,8 +37,7 @@ public interface FileDetailsCmd extends Cmd<FileDetailsResult>, WithContext, Req
 
         private String fileId;
 
-        private Impl(Context context,
-                     String fileId) {
+        private Impl(Context context, String fileId) {
             Objects.requireNonNull(context);
             Objects.requireNonNull(fileId);
             this.context = context;
@@ -71,8 +68,7 @@ public interface FileDetailsCmd extends Cmd<FileDetailsResult>, WithContext, Req
     }
 
     final class ExecImpl implements Exec {
-        private ExecImpl() {
-        }
+        private ExecImpl() {}
 
         @Override
         public FileDetailsResult exec(FileDetailsCmd cmd) throws ApiError {
@@ -80,14 +76,16 @@ public interface FileDetailsCmd extends Cmd<FileDetailsResult>, WithContext, Req
 
             // Headers
             var headers = httpClient.commonHeaders();
-            headers.put(HttpHeader.AUTHORIZATION.getValue(), cmd.requireAccessToken().tokenString());
-            headers.put(HttpHeader.CAPTCHA_TOKEN.getValue(), cmd.requireCaptchaToken().tokenValue());
+            headers.put(
+                    HttpHeader.AUTHORIZATION.getValue(),
+                    cmd.requireAccessToken().tokenString());
+            headers.put(
+                    HttpHeader.CAPTCHA_TOKEN.getValue(),
+                    cmd.requireCaptchaToken().tokenValue());
 
             // Request
             var uri = URI.create("https://api-drive.mypikpak.com/drive/v1/files/%s".formatted(cmd.fileId()));
-            var request = HttpRequest.newBuilder()
-                .uri(uri)
-                .GET();
+            var request = HttpRequest.newBuilder().uri(uri).GET();
             headers.forEach(request::setHeader);
             return httpClient.send(request.build(), FileDetailsResult.class);
         }

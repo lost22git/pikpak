@@ -1,14 +1,13 @@
 package lost.pikpak.client.http;
 
-import lost.pikpak.client.util.Util;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
+import lost.pikpak.client.util.Util;
 
 public interface Params {
     Pattern P = Pattern.compile("([^=]+)=([^&]+)&?");
@@ -42,9 +41,9 @@ public interface Params {
         for (var name : names()) {
             for (var value : value(name)) {
                 sb.append(URLEncoder.encode(name, UTF_8))
-                    .append("=")
-                    .append(URLEncoder.encode(value, UTF_8))
-                    .append("&");
+                        .append("=")
+                        .append(URLEncoder.encode(value, UTF_8))
+                        .append("&");
             }
         }
         return Util.deleteLastChar(sb).toString();
@@ -59,13 +58,8 @@ public interface Params {
             } else {
                 // copy immutables
                 this.map = map.entrySet().stream()
-                    .collect(
-                        Collectors.toUnmodifiableMap(
-                            Map.Entry::getKey,
-                            e -> List.copyOf(e.getValue()),
-                            (v1, v2) -> v1
-                        )
-                    );
+                        .collect(Collectors.toUnmodifiableMap(
+                                Map.Entry::getKey, e -> List.copyOf(e.getValue()), (v1, v2) -> v1));
             }
         }
 
@@ -80,12 +74,10 @@ public interface Params {
         }
     }
 
-
     final class Builder implements lost.pikpak.client.util.Builder<Params> {
         private final Map<String, List<String>> map = new HashMap<>();
 
-        private Builder() {
-        }
+        private Builder() {}
 
         public Set<String> names() {
             return this.map.keySet();
@@ -96,8 +88,7 @@ public interface Params {
             return this.map.computeIfAbsent(name, k -> new ArrayList<>());
         }
 
-        public Builder add(String name,
-                           String value) {
+        public Builder add(String name, String value) {
             Objects.requireNonNull(name);
             Objects.requireNonNull(value);
             value(name).add(value);
@@ -109,6 +100,4 @@ public interface Params {
             return new Impl(this.map);
         }
     }
-
-
 }

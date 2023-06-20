@@ -1,13 +1,12 @@
 package lost.pikpak.client;
 
-import lost.pikpak.client.context.Context;
+import static java.lang.System.Logger.Level.INFO;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-
-import static java.lang.System.Logger.Level.INFO;
+import lost.pikpak.client.context.Context;
 
 public class PikPakClient {
     private static final System.Logger LOG = System.getLogger(PikPakClient.class.getName());
@@ -55,5 +54,4 @@ public class PikPakClient {
         this.contexts.put(user.username(), context);
         return this;
     }
-
 }

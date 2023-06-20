@@ -8,10 +8,8 @@ public final class SignInError extends ApiError {
         this.username = username;
     }
 
-    public SignInError(String username,
-                       Throwable cause) {
+    public SignInError(String username, Throwable cause) {
         super("username=" + username, cause);
         this.username = username;
     }
-
 }

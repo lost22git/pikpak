@@ -19,18 +19,13 @@ import java.util.Objects;
  * @param <E>     the inner type of err body
  */
 public record HttpResponse<T extends HttpResponse.Body<V, E>, V, E>(
-    HttpRequest request,
-    int status,
-    Map<String, List<String>> headers,
-    T body
-) {
+        HttpRequest request, int status, Map<String, List<String>> headers, T body) {
     public HttpResponse {
         Objects.requireNonNull(request);
         Objects.requireNonNull(body);
         // make headers immutable
         headers = headers == null ? Map.of() : Map.copyOf(headers);
     }
-
 
     public sealed interface Body<V, E> {
         static <V, E> BodySubscriber<Body<V, E>> okBodySubscriber(BodySubscriber<V> ups) {
@@ -60,12 +55,9 @@ public record HttpResponse<T extends HttpResponse.Body<V, E>, V, E>(
         default boolean isErr() {
             return !isOk();
         }
-
     }
 
-    public record OkBody<V, E>(
-        V value
-    ) implements Body<V, E> {
+    public record OkBody<V, E>(V value) implements Body<V, E> {
 
         @Override
         public E error() {
@@ -73,9 +65,7 @@ public record HttpResponse<T extends HttpResponse.Body<V, E>, V, E>(
         }
     }
 
-    public record ErrBody<V, E>(
-        E error
-    ) implements Body<V, E> {
+    public record ErrBody<V, E>(E error) implements Body<V, E> {
 
         @Override
         public V value() {

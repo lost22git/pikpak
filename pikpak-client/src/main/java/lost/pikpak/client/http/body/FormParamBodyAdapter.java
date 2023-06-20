@@ -1,21 +1,19 @@
 package lost.pikpak.client.http.body;
 
-import lost.pikpak.client.http.Params;
-
 import java.lang.reflect.Type;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodySubscriber;
 import java.net.http.HttpResponse.BodySubscribers;
 import java.nio.charset.StandardCharsets;
+import lost.pikpak.client.http.Params;
 
 public final class FormParamBodyAdapter implements BodyAdapter<Params> {
 
     private final Reader reader = new Reader();
     private final Writer writer = new Writer();
 
-    private FormParamBodyAdapter() {
-    }
+    private FormParamBodyAdapter() {}
 
     public static FormParamBodyAdapter create() {
         return new FormParamBodyAdapter();
@@ -31,27 +29,19 @@ public final class FormParamBodyAdapter implements BodyAdapter<Params> {
         return this.writer;
     }
 
-
     private static final class Reader implements BodyReader<Params> {
 
         @Override
         public BodySubscriber<Params> read(Type type) {
-            return BodySubscribers.mapping(
-                BodySubscribers.ofString(StandardCharsets.UTF_8),
-                Params::parse
-            );
+            return BodySubscribers.mapping(BodySubscribers.ofString(StandardCharsets.UTF_8), Params::parse);
         }
     }
-
 
     private static final class Writer implements BodyWriter<Params> {
 
         @Override
         public BodyPublisher write(Params data) {
-            return BodyPublishers.ofString(
-                data.format()
-            );
+            return BodyPublishers.ofString(data.format());
         }
     }
-
 }
