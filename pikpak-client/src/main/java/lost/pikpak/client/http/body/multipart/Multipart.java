@@ -1,5 +1,6 @@
 package lost.pikpak.client.http.body.multipart;
 
+import java.net.http.HttpRequest.BodyPublisher;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -78,6 +79,30 @@ public sealed interface Multipart {
 
         public Builder part(Part part) {
             Objects.requireNonNull(part);
+            this.parts.add(part);
+            return this;
+        }
+
+        public Builder textPart(String name,
+                                String contentType,
+                                BodyPublisher body) {
+            var part = Part.builder(name)
+                .contentType(contentType)
+                .body(body)
+                .build();
+            this.parts.add(part);
+            return this;
+        }
+
+        public Builder filePart(String name,
+                                String filename,
+                                String contentType,
+                                BodyPublisher body) {
+            var part = Part.builder(name)
+                .filename(filename)
+                .contentType(contentType)
+                .body(body)
+                .build();
             this.parts.add(part);
             return this;
         }

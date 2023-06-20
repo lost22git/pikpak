@@ -36,11 +36,11 @@ public interface HttpClient extends WithContext {
     System.Logger LOG = System.getLogger(HttpClient.class.getName());
 
     static HttpClient create(Context context) {
-        var implsClassName = List.of(
+        List<String> implsClassName = List.of(
             "lost.pikpak.client.helidon.NimaHttpClient",
             "lost.pikpak.client.reactor.ReactorHttpClient"
         );
-        for (String className : implsClassName) {
+        for (var className : implsClassName) {
             if (Util.hasClass(className)) {
                 try {
                     Class<?> cls = Class.forName(className);
@@ -99,7 +99,8 @@ public interface HttpClient extends WithContext {
      * @throws Exception the exception
      */
     default <T extends Body<V, E>, V, E> HttpResponse<T, V, E> doSend(HttpRequest request,
-                                                                      BodyHandler<T> bodyHandler) throws Exception {
+                                                                      BodyHandler<T> bodyHandler)
+        throws Exception {
         try (var res = doSend(request)) {
             var responseInfo = res.responseInfo();
             var resBodySubscriber = bodyHandler.apply(responseInfo);
@@ -129,7 +130,8 @@ public interface HttpClient extends WithContext {
      * @throws HttpError the error if we get error response ( {@link HttpResponse} with {@link ErrBody} )
      */
     default <T extends Body<V, E>, V, E> HttpResponse<T, V, E> send(HttpRequest request,
-                                                                    BodyHandler<T> bodyHandler) throws HttpError {
+                                                                    BodyHandler<T> bodyHandler)
+        throws HttpError {
 
         // TODO replace these into interceptors ?
 

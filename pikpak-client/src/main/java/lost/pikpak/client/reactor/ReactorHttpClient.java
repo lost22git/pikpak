@@ -8,7 +8,6 @@ import lost.pikpak.client.context.Context;
 import lost.pikpak.client.http.HttpClient;
 import lost.pikpak.client.http.body.BodyAdapters;
 import reactor.adapter.JdkFlowAdapter;
-import reactor.netty.http.client.HttpClient.ResponseReceiver;
 import reactor.netty.transport.logging.AdvancedByteBufFormat;
 
 import java.io.InputStream;
@@ -75,7 +74,7 @@ public final class ReactorHttpClient implements HttpClient {
 
     @Override
     public <T extends Response> T doSend(HttpRequest request) throws Exception {
-        ResponseReceiver<?> resReceiver = this.httpClient
+        var resReceiver = this.httpClient
             .headers(h -> request.headers().map().forEach(h::add))
             .request(HttpMethod.valueOf(request.method()))
             .uri(request.uri())

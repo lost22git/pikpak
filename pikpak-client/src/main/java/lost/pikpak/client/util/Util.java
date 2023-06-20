@@ -192,12 +192,15 @@ public final class Util {
     public static void initJUL() {
         var configFile = System.getProperty("java.util.logging.config.file");
         if (configFile == null || configFile.trim().isBlank()) {
-            System.err.println("initJUL: -Djava.util.logging.config.file not specified, try use JUL config file classpath://logging.properties");
-            configFile = Optional.ofNullable(Util.class.getClassLoader().getResource("logging.properties"))
+            System.err.println("initJUL: -Djava.util.logging.config.file not specified, " +
+                               "try use JUL config file classpath://logging.properties");
+            configFile = Optional.ofNullable(Util.class.getClassLoader()
+                    .getResource("logging.properties"))
                 .map(URL::getFile)
                 .orElse(null);
             if (configFile == null) {
-                System.err.println("initJUL: JUL config file classpath://logging.properties not found.");
+                System.err.println(
+                    "initJUL: JUL config file classpath://logging.properties not found.");
                 return;
             }
             System.setProperty("java.util.logging.config.file", configFile);
@@ -213,7 +216,10 @@ public final class Util {
      * see {@code jdk.internal.net.http.common.Log}
      */
     public static void configureJdkHttpClientLog() {
-        System.setProperty("jdk.httpclient.HttpClient.log", "all");
+
+        System.setProperty("jdk.httpclient.HttpClient.log",
+            "headers,content,requests,errors,frames:data");
+//        System.setProperty("jdk.httpclient.HttpClient.log", "all");
 //        System.setProperty("jdk.internal.httpclient.debug", "true");
     }
 }

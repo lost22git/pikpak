@@ -13,7 +13,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
-import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 
@@ -65,10 +65,9 @@ public class MultipartTest {
 
     @Test
     void upload() throws Exception {
-
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
             var proxy = ProxySelector.of(
-                InetSocketAddress.createUnresolved("localhost", 55556));
+                InetSocketAddress.createUnresolved("127.0.0.1", 55556));
             var client = HttpClient.newBuilder()
                 .executor(executor)
                 .proxy(proxy)
@@ -83,15 +82,13 @@ public class MultipartTest {
                 len = is.available();
             }
             var multipart = Multipart.builder()
-                .part(Part.builder("file")
-                    .filename("test.png")
-                    .contentType("image/png")
-                    .body(BodyPublishers.fromPublisher(
-                        BodyPublishers.ofInputStream(inputStream),
-                        len)
-                    )
-                    .build()
+                .filePart("file",
+                    "test.png",
+                    "image/png",
+                    BodyPublishers.fromPublisher(
+                        BodyPublishers.ofInputStream(inputStream), len)
                 ).build();
+
             var reqBody = BodyAdapters.create()
                 .multipart()
                 .writer()
@@ -103,7 +100,7 @@ public class MultipartTest {
                 .POST(reqBody)
                 .build();
 
-            var res = client.send(request, HttpResponse.BodyHandlers.ofString());
+            var res = client.send(request, BodyHandlers.ofString());
 
             assertThat(res.statusCode()).isEqualTo(200);
             assertThat(res.body()).contains("url", "id", "name");

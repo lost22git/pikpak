@@ -10,6 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class FileListCmdTest {
 
     static {
+        Util.configureJdkHttpClientLog();
         Util.initJUL();
     }
 
