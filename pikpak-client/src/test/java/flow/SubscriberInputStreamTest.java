@@ -1,3 +1,5 @@
+package flow;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
@@ -8,7 +10,7 @@ import java.util.ArrayDeque;
 import java.util.List;
 import java.util.concurrent.Flow;
 import java.util.concurrent.SubmissionPublisher;
-import lost.pikpak.client.util.SubscriberInputStream;
+import lost.pikpak.client.util.flow.SubscriberInputStream;
 import org.junit.jupiter.api.Test;
 
 public class SubscriberInputStreamTest {

@@ -17,7 +17,7 @@ import lost.pikpak.client.context.Context;
 import lost.pikpak.client.http.HttpClient;
 import lost.pikpak.client.http.body.BodyAdapters;
 import lost.pikpak.client.util.ByteUtil;
-import lost.pikpak.client.util.SubscriberInputStream;
+import lost.pikpak.client.util.flow.SubscriberInputStream;
 
 public final class NimaHttpClient implements HttpClient {
     private static final System.Logger LOG = System.getLogger(NimaHttpClient.class.getName());

@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodySubscriber;
 import java.net.http.HttpResponse.ResponseInfo;
@@ -28,8 +29,8 @@ import lost.pikpak.client.http.HttpResponse.ErrBody;
 import lost.pikpak.client.http.HttpResponse.OkBody;
 import lost.pikpak.client.http.body.BodyAdapters;
 import lost.pikpak.client.util.ByteUtil;
-import lost.pikpak.client.util.InputStreamPublisher;
 import lost.pikpak.client.util.Util;
+import lost.pikpak.client.util.flow.MapperPublisher;
 
 public interface HttpClient extends WithContext {
     System.Logger LOG = System.getLogger(HttpClient.class.getName());
@@ -243,13 +244,13 @@ public interface HttpClient extends WithContext {
                 if (len < 0) {
                     sb.append(
                                     """
-                        --------------------------------------------------------
-                        *NOTE*
-                        we got request body `content length < 0`,
-                        check your HttpRequest.BodyPublisher.contentLength()
-                        if you dont want `Transfer-Encoding: chunked`
-                        --------------------------------------------------------
-                        """)
+                                --------------------------------------------------------
+                                *NOTE*
+                                we got request body `content length < 0`,
+                                check your HttpRequest.BodyPublisher.contentLength()
+                                if you dont want `Transfer-Encoding: chunked`
+                                --------------------------------------------------------
+                                """)
                             .append("\n");
                 }
             });
@@ -300,7 +301,8 @@ public interface HttpClient extends WithContext {
          * @return the publisher
          */
         default Flow.Publisher<List<ByteBuffer>> bodyPublisher() {
-            return new InputStreamPublisher(bodyInputStream());
+            //            return new InputStreamPublisher(this::bodyInputStream);
+            return new MapperPublisher<>(BodyPublishers.ofInputStream(this::bodyInputStream), List::of);
         }
     }
 }

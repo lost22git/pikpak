@@ -1,8 +1,9 @@
-package lost.pikpak.client.util;
+package lost.pikpak.client.util.flow;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Flow;
 import java.util.concurrent.locks.Condition;
@@ -62,7 +63,7 @@ public final class SubscriberInputStream extends InputStream implements Flow.Sub
 
                 var data = this.dataLoaded; // when sync request
 
-                if (!isEnd() && data == LOADING) {
+                if (!end() && data == LOADING) {
                     this.dataLoadCond.await(); // when async request
                     data = this.dataLoaded;
                 }
@@ -87,23 +88,23 @@ public final class SubscriberInputStream extends InputStream implements Flow.Sub
     }
 
     public void onSubscribe(Flow.Subscription subscription) {
-        this.subscription = subscription;
+        this.subscription = Objects.requireNonNull(subscription);
         this.subLatch.countDown();
     }
 
-    private boolean isEnd() {
+    private boolean end() {
         return this.error != null || this.complete;
     }
 
     @Override
     public void onNext(ByteBuffer item) {
+        if (end()) return;
         var lock = this.dataLoadLock;
         lock.lock();
         try {
-            if (!isEnd()) {
-                this.dataLoaded = item;
-                this.dataLoadCond.signalAll();
-            }
+            if (end()) return;
+            this.dataLoaded = item;
+            this.dataLoadCond.signalAll();
         } finally {
             lock.unlock();
         }

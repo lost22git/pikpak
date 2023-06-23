@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Flow;
+import lost.pikpak.client.util.flow.AggSubscriber;
 
 public class ByteUtil {
 
@@ -105,7 +106,7 @@ public class ByteUtil {
         Objects.requireNonNull(publisher);
         var agg = new AggSubscriber<ByteBuffer>();
         publisher.subscribe(agg);
-        var buffers = agg.blockingGet();
+        var buffers = agg.get();
         return collectIntoBytes(buffers);
     }
 

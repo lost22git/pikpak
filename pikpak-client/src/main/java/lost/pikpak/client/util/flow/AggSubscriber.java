@@ -1,7 +1,8 @@
-package lost.pikpak.client.util;
+package lost.pikpak.client.util.flow;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Flow;
@@ -13,13 +14,14 @@ public class AggSubscriber<T> implements Flow.Subscriber<T> {
     private final List<T> buffers = new ArrayList<>();
     private final Lock lock = new ReentrantLock();
     private Flow.Subscription subscription;
-    private volatile boolean end = false;
+    private volatile boolean complete = false;
+    private volatile Throwable error;
 
-    public List<T> blockingGet() {
+    public List<T> get() {
         return this.result.join();
     }
 
-    public CompletionStage<List<T>> asyncGet() {
+    public CompletionStage<List<T>> getAsync() {
         CompletableFuture<List<T>> res = new CompletableFuture<>();
         this.result.whenComplete((v, e) -> {
             if (e != null) {
@@ -33,19 +35,19 @@ public class AggSubscriber<T> implements Flow.Subscriber<T> {
 
     @Override
     public void onSubscribe(Flow.Subscription subscription) {
-        this.subscription = subscription;
+        this.subscription = Objects.requireNonNull(subscription);
         this.subscription.request(1);
     }
 
     @Override
     public void onNext(T item) {
+        if (end()) return;
         var l = this.lock;
         l.lock();
         try {
-            if (!this.end) {
-                this.buffers.add(item);
-                this.subscription.request(1);
-            }
+            if (end()) return;
+            this.buffers.add(item);
+            this.subscription.request(1);
         } finally {
             l.unlock();
         }
@@ -53,14 +55,14 @@ public class AggSubscriber<T> implements Flow.Subscriber<T> {
 
     @Override
     public void onError(Throwable throwable) {
+        if (end()) return;
         var l = this.lock;
         l.lock();
         try {
-            if (!this.end) {
-                this.end = true;
-                this.buffers.clear();
-                this.result.completeExceptionally(throwable);
-            }
+            if (end()) return;
+            this.error = throwable;
+            this.buffers.clear();
+            this.result.completeExceptionally(throwable);
         } finally {
             l.unlock();
         }
@@ -68,15 +70,19 @@ public class AggSubscriber<T> implements Flow.Subscriber<T> {
 
     @Override
     public void onComplete() {
+        if (end()) return;
         var l = this.lock;
         l.lock();
         try {
-            if (!this.end) {
-                this.end = true;
-                this.result.complete(this.buffers);
-            }
+            if (end()) return;
+            this.complete = true;
+            this.result.complete(this.buffers);
         } finally {
             l.unlock();
         }
+    }
+
+    private boolean end() {
+        return complete || error != null;
     }
 }
