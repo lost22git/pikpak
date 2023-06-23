@@ -37,11 +37,11 @@ public class MultipartTest {
                         .body(
                                 BodyPublishers.ofString(
                                         """
-                        {
-                            "name": "second part",
-                            "message": "second part is a json part"
-                        }
-                        """))
+                            {
+                                "name": "second part",
+                                "message": "second part is a json part"
+                            }
+                            """))
                         .build())
                 .build();
 

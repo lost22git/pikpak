@@ -27,10 +27,10 @@ public class ConfigTest {
     void dataExtract() {
         var json =
                 """
-            {
-                "http_referer":"http://localhost:8888"
-            }
-            """;
+                {
+                    "http_referer":"http://localhost:8888"
+                }
+                """;
         Config.Data yyyUserData = Util.fromJson(json, Config.Data.class);
         var config = new Config(
                 null,

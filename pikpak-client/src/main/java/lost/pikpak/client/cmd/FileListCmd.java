@@ -178,18 +178,18 @@ public interface FileListCmd extends Cmd<FileListResult>, WithContext, RequireCa
 
             var filterParam =
                     """
-                {
-                   // "kind": {
-                   //     "eq": "drive#file"
-                   // }
-                    "trashed": {
-                        "eq": false
-                    },
-                    "phase": {
-                        "eq": "PHASE_TYPE_COMPLETE"
+                    {
+                       // "kind": {
+                       //     "eq": "drive#file"
+                       // }
+                        "trashed": {
+                            "eq": false
+                        },
+                        "phase": {
+                            "eq": "PHASE_TYPE_COMPLETE"
+                        }
                     }
-                }
-                """;
+                    """;
             var filterParamCompact = Util.compactJson(filterParam);
             var filterParamEncoded = URLEncoder.encode(filterParamCompact, StandardCharsets.UTF_8);
 

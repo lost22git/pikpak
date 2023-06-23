@@ -9,12 +9,12 @@ public class UtilTest {
     void dropJsonExtraWhitespace() {
         var json =
                 """
-                {
-                    "name": "\"video \' xyz \' \".mp4",
-                    "width": 1080,
-                    "height": 760
-                }
-            """;
+                    {
+                        "name": "\"video \' xyz \' \".mp4",
+                        "width": 1080,
+                        "height": 760
+                    }
+                """;
         var dropWhitespace = Util.dropJsonExtraWhitespace(json);
         var expected = "{\"name\":\"\"video'xyz'\".mp4\",\"width\":1080,\"height\":760}";
         assertThat(expected).isEqualTo(dropWhitespace);
@@ -24,13 +24,13 @@ public class UtilTest {
     void dropJsonSingleLineComment() {
         var json =
                 """
-            {
-                "name": "\"video \' xyz \' \".mp4", // sdfs
-                "width": 1080,
-                // height value
-                "//height": 760
-            }
-            """;
+                {
+                    "name": "\"video \' xyz \' \".mp4", // sdfs
+                    "width": 1080,
+                    // height value
+                    "//height": 760
+                }
+                """;
         var dropComment = Util.dropJsonSingleLineComment(json);
         System.out.println("dropComment = " + dropComment);
     }
@@ -39,13 +39,13 @@ public class UtilTest {
     void compactJson() {
         var json =
                 """
-            {
-                "name": "\"video \' xyz \' \".mp4", // sdfs
-                "width": 1080,
-                // height value
-                "//height": 760
-            }
-            """;
+                {
+                    "name": "\"video \' xyz \' \".mp4", // sdfs
+                    "width": 1080,
+                    // height value
+                    "//height": 760
+                }
+                """;
         var compactJson = Util.compactJson(json);
         var expected = "{\"name\":\"\"video'xyz'\".mp4\",\"width\":1080,\"//height\":760}";
         assertThat(expected).isEqualTo(compactJson);

@@ -43,14 +43,14 @@ public final class InputStreamPublisher implements Flow.Publisher<List<ByteBuffe
         private volatile boolean complete = false;
         private volatile Throwable error;
 
-        private boolean end() {
-            return complete | error != null;
-        }
-
         Sub(InputStream is, int bufferSize, Flow.Subscriber<? super List<ByteBuffer>> subscriber) {
             this.is = is;
             this.bufferSize = bufferSize;
             this.subscriber = subscriber;
+        }
+
+        private boolean end() {
+            return complete | error != null;
         }
 
         @Override

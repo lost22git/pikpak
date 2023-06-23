@@ -11,11 +11,11 @@ public class ParamsTest {
     void format_and_parse() {
         var meta = Util.compactJson(
                 """
-            {
-                "bitrate":  8700,
-                "fps": 60
-            }
-            """);
+                {
+                    "bitrate":  8700,
+                    "fps": 60
+                }
+                """);
         var param = Params.builder()
                 .add("name", "video.mp4")
                 .add("width", "1080")
