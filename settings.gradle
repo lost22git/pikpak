@@ -1,9 +1,9 @@
 pluginManagement {
-  repositories {
-    gradlePluginPortal()
-    mavenLocal()
-    mavenCentral()
-  }
+	repositories {
+		gradlePluginPortal()
+		mavenLocal()
+		mavenCentral()
+	}
 }
 
 rootProject.name = "pikpak"

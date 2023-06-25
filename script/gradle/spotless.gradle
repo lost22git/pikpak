@@ -1,0 +1,11 @@
+spotless {
+  java {
+    target '**/src/main/java/**/*.java', '**/src/test/java/**/*.java'
+    palantirJavaFormat()
+    removeUnusedImports()
+  }
+
+  groovyGradle { // for gradle groovy files
+    greclipse() // Uses the formatting rules of Eclipse
+  }
+}

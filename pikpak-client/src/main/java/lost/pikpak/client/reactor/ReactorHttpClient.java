@@ -2,6 +2,8 @@ package lost.pikpak.client.reactor;
 
 import static java.lang.System.Logger.Level.DEBUG;
 import static java.lang.System.Logger.Level.INFO;
+import static reactor.adapter.JdkFlowAdapter.flowPublisherToFlux;
+import static reactor.adapter.JdkFlowAdapter.publisherToFlowPublisher;
 import static reactor.netty.transport.ProxyProvider.Proxy.HTTP;
 
 import io.netty.buffer.Unpooled;
@@ -23,7 +25,6 @@ import lost.pikpak.client.Config;
 import lost.pikpak.client.context.Context;
 import lost.pikpak.client.http.HttpClient;
 import lost.pikpak.client.http.body.BodyAdapters;
-import reactor.adapter.JdkFlowAdapter;
 import reactor.netty.transport.logging.AdvancedByteBufFormat;
 
 public final class ReactorHttpClient implements HttpClient {
@@ -74,7 +75,7 @@ public final class ReactorHttpClient implements HttpClient {
                 .headers(h -> request.headers().map().forEach(h::add))
                 .request(HttpMethod.valueOf(request.method()))
                 .uri(request.uri())
-                .send(JdkFlowAdapter.flowPublisherToFlux(request.bodyPublisher().orElse(BodyPublishers.noBody()))
+                .send(flowPublisherToFlux(request.bodyPublisher().orElse(BodyPublishers.noBody()))
                         .map(Unpooled::wrappedBuffer));
         var res = resReceiver.response().block();
         var resContent = resReceiver.responseContent();
@@ -93,7 +94,7 @@ public final class ReactorHttpClient implements HttpClient {
             @Override
             public Flow.Publisher<List<ByteBuffer>> bodyPublisher() {
                 var flux = resContent.asByteBuffer().map(List::of);
-                return JdkFlowAdapter.publisherToFlowPublisher(flux);
+                return publisherToFlowPublisher(flux);
             }
 
             @Override

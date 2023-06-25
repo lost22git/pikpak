@@ -1,5 +1,8 @@
-package lost.pikpak.client.util.flow;
+package lost.pikpak.client.bindata.util;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -16,6 +19,18 @@ public class AggSubscriber<T> implements Flow.Subscriber<T> {
     private Flow.Subscription subscription;
     private volatile boolean complete = false;
     private volatile Throwable error;
+
+    public static String collectString(Flow.Publisher<ByteBuffer> publisher) {
+        return new String(collectBytes(publisher), UTF_8);
+    }
+
+    public static byte[] collectBytes(Flow.Publisher<ByteBuffer> publisher) {
+        Objects.requireNonNull(publisher);
+        var agg = new AggSubscriber<ByteBuffer>();
+        publisher.subscribe(agg);
+        var buffers = agg.get();
+        return ByteUtil.collectBytes(buffers);
+    }
 
     public List<T> get() {
         return this.result.join();

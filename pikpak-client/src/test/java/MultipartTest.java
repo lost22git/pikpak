@@ -10,11 +10,11 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
+import lost.pikpak.client.bindata.util.AggSubscriber;
 import lost.pikpak.client.http.body.BodyAdapters;
 import lost.pikpak.client.http.body.multipart.Multipart;
 import lost.pikpak.client.http.body.multipart.MultipartBodyAdapter;
 import lost.pikpak.client.http.body.multipart.Part;
-import lost.pikpak.client.util.ByteUtil;
 import lost.pikpak.client.util.Util;
 import org.junit.jupiter.api.Test;
 
@@ -53,7 +53,7 @@ public class MultipartTest {
 
         assertThat(bodyPublisher.contentLength()).isPositive();
 
-        var bodyString = ByteUtil.collectIntoString(bodyPublisher);
+        var bodyString = AggSubscriber.collectString(bodyPublisher);
         System.out.println("multipart body:  \n" + bodyString);
     }
 

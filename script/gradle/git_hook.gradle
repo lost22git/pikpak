@@ -1,0 +1,8 @@
+var group_name = "git hook"
+
+tasks.register('copyPreCommit', Copy) {
+  group group_name
+  from 'script/pre-commit'
+  into '.git/hooks/'
+  fileMode 777
+}

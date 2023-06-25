@@ -1,63 +1,66 @@
 plugins {
-  alias(libs.plugins.versions)
-  alias(libs.plugins.version.catalog.update)
-  alias(libs.plugins.palantir.format)
-  alias(libs.plugins.spotless)
+	alias(libs.plugins.versions)
+	alias(libs.plugins.version.catalog.update)
+	alias(libs.plugins.palantir.format)
+	alias(libs.plugins.spotless)
 }
 
 allprojects {
-  group = "lost"
-  version = "0.0.1"
-  repositories {
-    mavenLocal()
-    mavenCentral()
-  }
+	group = "lost"
+	version = "0.0.1"
+	repositories {
+		mavenLocal()
+		mavenCentral()
+	}
 }
 
 subprojects {
-  apply {
-    plugin("java")
-  }
+	apply {
+		plugin("java")
+	}
 
-  java {
-    sourceCompatibility = JavaVersion.VERSION_20
-    targetCompatibility = JavaVersion.VERSION_20
-  }
+	java {
+		sourceCompatibility = JavaVersion.VERSION_20
+		targetCompatibility = JavaVersion.VERSION_20
+	}
 
-  dependencies {
-    // annotation
-    compileOnly(libs.jetbrains.annotations)
-    testCompileOnly(libs.jetbrains.annotations)
-    // test
-    testImplementation(libs.bundles.junit)
-    testImplementation(libs.assertj)
-    testImplementation(libs.awaitility)
-    testImplementation(libs.easyrandom.core)
-  }
+	dependencies {
+		// annotation
+		compileOnly(libs.jetbrains.annotations)
+		testCompileOnly(libs.jetbrains.annotations)
+		// test
+		testImplementation(libs.bundles.junit)
+		testImplementation(libs.assertj)
+		testImplementation(libs.awaitility)
+		testImplementation(libs.easyrandom.core)
+	}
 
-  tasks.withType(JavaCompile).configureEach {
-    options.encoding = "UTF-8"
-    options.compilerArgs += [
-      "-parameters",
-      "--enable-preview"
-    ]
-  }
+	tasks.withType(JavaCompile).configureEach {
+		options.encoding = "UTF-8"
+		options.compilerArgs += [
+			"-parameters",
+			"--enable-preview",
+		]
+	}
 
-  tasks.withType(JavaExec).configureEach {
-    jvmArgs = [
-      "--enable-preview"
-    ]
-  }
+	tasks.withType(JavaExec).configureEach {
+		jvmArgs = [
+			"--enable-preview",
+			"--add-opens",
+			"java.base/java.io=ALL-UNNAMED",
+		]
+	}
 
-  tasks.withType(Test).configureEach {
-    useJUnitPlatform()
-    jvmArgs = [
-      "--enable-preview"
-    ]
-  }
-
-
+	tasks.withType(Test).configureEach {
+		useJUnitPlatform()
+		jvmArgs = [
+			"--enable-preview",
+			"--add-opens",
+			"java.base/java.io=ALL-UNNAMED",
+		]
+	}
 }
 
-apply from: "./gradle_scripts/spotless.gradle"
-apply from: "./gradle_scripts/version_catalog_update.gradle"
+apply from: "script/gradle/git_hook.gradle"
+apply from: "script/gradle/spotless.gradle"
+apply from: "script/gradle/version_catalog_update.gradle"

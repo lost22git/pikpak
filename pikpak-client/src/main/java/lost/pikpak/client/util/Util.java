@@ -1,5 +1,7 @@
 package lost.pikpak.client.util;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import io.avaje.jsonb.Jsonb;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
@@ -9,7 +11,6 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodySubscriber;
 import java.net.http.HttpResponse.BodySubscribers;
-import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -154,11 +155,11 @@ public final class Util {
     }
 
     public static <T> BodySubscriber<T> jsonBodySubscriber(Type bodyType) {
-        return BodySubscribers.mapping(BodySubscribers.ofString(StandardCharsets.UTF_8), bodyJson -> {
+        return BodySubscribers.mapping(BodySubscribers.ofString(UTF_8), bodyJson -> {
             // replace value "" into null
             // e.g. { "name": "" } -> { "name": null }
             bodyJson = bodyJson.replace("\"\"", "null");
-            return Util.fromJson(bodyJson, bodyType);
+            return fromJson(bodyJson, bodyType);
         });
     }
 

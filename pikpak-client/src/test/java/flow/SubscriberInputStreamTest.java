@@ -10,7 +10,7 @@ import java.util.ArrayDeque;
 import java.util.List;
 import java.util.concurrent.Flow;
 import java.util.concurrent.SubmissionPublisher;
-import lost.pikpak.client.util.flow.SubscriberInputStream;
+import lost.pikpak.client.bindata.util.SubscriberInputStream;
 import org.junit.jupiter.api.Test;
 
 public class SubscriberInputStreamTest {

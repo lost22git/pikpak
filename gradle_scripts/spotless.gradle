@@ -1,6 +1,0 @@
-spotless {
-  java {
-    target '**/src/main/java/**/*.java', '**/src/test/java/**/*.java'
-    palantirJavaFormat()
-  }
-}

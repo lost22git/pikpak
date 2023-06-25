@@ -1,4 +1,4 @@
-package lost.pikpak.client.util.flow;
+package lost.pikpak.client.http;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,7 +31,7 @@ public final class InputStreamPublisher implements Flow.Publisher<List<ByteBuffe
         subscriber.onSubscribe(new Sub(is, this.bufferSize, subscriber));
     }
 
-    static final class Sub implements Flow.Subscription {
+    private static final class Sub implements Flow.Subscription {
         private final InputStream is;
         private final Flow.Subscriber<? super List<ByteBuffer>> subscriber;
         private final int bufferSize;
@@ -90,8 +90,7 @@ public final class InputStreamPublisher implements Flow.Publisher<List<ByteBuffe
             try {
                 if (end()) return;
                 this.close();
-                var err = new CancellationException();
-                this.error = err;
+                var err = this.error = new CancellationException();
                 this.subscriber.onError(err);
             } finally {
                 l.unlock();

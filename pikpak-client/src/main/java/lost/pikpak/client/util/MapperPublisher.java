@@ -1,14 +1,15 @@
-package lost.pikpak.client.util.flow;
+package lost.pikpak.client.util;
 
 import java.util.Objects;
 import java.util.concurrent.Flow;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public final class MapperPublisher<S, T> implements Flow.Publisher<T> {
-    private final Flow.Publisher<S> source;
+    private final Supplier<Flow.Publisher<S>> source;
     private final Function<S, T> mapper;
 
-    public MapperPublisher(Flow.Publisher<S> source, Function<S, T> mapper) {
+    public MapperPublisher(Supplier<Flow.Publisher<S>> source, Function<S, T> mapper) {
         this.source = Objects.requireNonNull(source);
         this.mapper = Objects.requireNonNull(mapper);
     }
@@ -16,7 +17,7 @@ public final class MapperPublisher<S, T> implements Flow.Publisher<T> {
     @Override
     public void subscribe(Flow.Subscriber<? super T> subscriber) {
         var p = new Processor(mapper);
-        this.source.subscribe(p);
+        this.source.get().subscribe(p);
         p.subscribe(subscriber);
     }
 

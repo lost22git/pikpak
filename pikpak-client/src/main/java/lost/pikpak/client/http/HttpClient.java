@@ -18,6 +18,8 @@ import java.util.Map;
 import java.util.concurrent.Flow;
 import java.util.concurrent.TimeUnit;
 import lost.pikpak.client.Config.Data;
+import lost.pikpak.client.bindata.BinData;
+import lost.pikpak.client.bindata.BinDatas;
 import lost.pikpak.client.context.Context;
 import lost.pikpak.client.context.WithContext;
 import lost.pikpak.client.enums.HttpHeader;
@@ -28,9 +30,8 @@ import lost.pikpak.client.http.HttpResponse.Body;
 import lost.pikpak.client.http.HttpResponse.ErrBody;
 import lost.pikpak.client.http.HttpResponse.OkBody;
 import lost.pikpak.client.http.body.BodyAdapters;
-import lost.pikpak.client.util.ByteUtil;
+import lost.pikpak.client.util.MapperPublisher;
 import lost.pikpak.client.util.Util;
-import lost.pikpak.client.util.flow.MapperPublisher;
 
 public interface HttpClient extends WithContext {
     System.Logger LOG = System.getLogger(HttpClient.class.getName());
@@ -257,7 +258,9 @@ public interface HttpClient extends WithContext {
             sb.append("--> Body: ")
                     .append("\n")
                     .append(request.bodyPublisher()
-                            .map(ByteUtil::collectIntoString)
+                            .map(BinDatas::publisher)
+                            .map(BinData::intoString)
+                            .map(BinData::unwrap)
                             .orElse(""))
                     .append("\n");
             LOG.log(DEBUG, sb.toString());
@@ -302,7 +305,7 @@ public interface HttpClient extends WithContext {
          */
         default Flow.Publisher<List<ByteBuffer>> bodyPublisher() {
             //            return new InputStreamPublisher(this::bodyInputStream);
-            return new MapperPublisher<>(BodyPublishers.ofInputStream(this::bodyInputStream), List::of);
+            return new MapperPublisher<>(() -> BodyPublishers.ofInputStream(this::bodyInputStream), List::of);
         }
     }
 }

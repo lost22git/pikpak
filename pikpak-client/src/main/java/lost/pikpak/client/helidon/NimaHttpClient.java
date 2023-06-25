@@ -13,11 +13,11 @@ import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.ResponseInfo;
 import java.util.Objects;
+import lost.pikpak.client.bindata.BinDatas;
+import lost.pikpak.client.bindata.util.ByteUtil;
 import lost.pikpak.client.context.Context;
 import lost.pikpak.client.http.HttpClient;
 import lost.pikpak.client.http.body.BodyAdapters;
-import lost.pikpak.client.util.ByteUtil;
-import lost.pikpak.client.util.flow.SubscriberInputStream;
 
 public final class NimaHttpClient implements HttpClient {
     private static final System.Logger LOG = System.getLogger(NimaHttpClient.class.getName());
@@ -58,8 +58,7 @@ public final class NimaHttpClient implements HttpClient {
         Http1ClientResponse res;
         if (body.isPresent()) {
             res = req.outputStream(out -> {
-                var in = new SubscriberInputStream();
-                body.get().subscribe(in);
+                var in = BinDatas.publisher(body.get()).intoInputStream().unwrap();
                 ByteUtil.ioCopy(in, out, 0);
             });
         } else {

@@ -1,4 +1,4 @@
-package lost.pikpak.client.util.flow;
+package lost.pikpak.client.bindata.util;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,7 +34,7 @@ public final class SubscriberInputStream extends InputStream implements Flow.Sub
         var b = this.buffer;
         if (b != null) {
             assert b.hasRemaining();
-            var res = b.get() & 0xff;
+            var res = b.get() & 0xff; // copy!
             if (!b.hasRemaining()) {
                 this.buffer = null;
             }
@@ -74,7 +74,7 @@ public final class SubscriberInputStream extends InputStream implements Flow.Sub
                 }
 
                 // got data
-                var res = data.get() & 0xff;
+                var res = data.get() & 0xff; // copy!
                 if (data.hasRemaining()) {
                     this.buffer = data;
                 }
