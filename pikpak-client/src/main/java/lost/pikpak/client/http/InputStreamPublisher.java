@@ -65,8 +65,8 @@ public final class InputStreamPublisher implements Flow.Publisher<List<ByteBuffe
                     var read = this.is.read(bytes); // Blocking! TODO run as an async task
                     if (read == -1) {
                         close();
-                        this.complete = true;
                         this.subscriber.onComplete();
+                        this.complete = true;
                         break;
                     } else {
                         var item = List.of(ByteBuffer.wrap(bytes, 0, read));
