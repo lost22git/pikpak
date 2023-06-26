@@ -257,11 +257,12 @@ public interface HttpClient extends WithContext {
             });
             sb.append("--> Body: ")
                     .append("\n")
-                    .append(request.bodyPublisher()
-                            .map(BinDatas::publisher)
-                            .map(BinData::intoString)
-                            .map(BinData::unwrap)
-                            .orElse(""))
+                    .append(
+                            request.bodyPublisher() // TODO
+                                    .map(BinDatas::publisher)
+                                    .map(BinData::intoString)
+                                    .map(BinData::unwrap)
+                                    .orElse(""))
                     .append("\n");
             LOG.log(DEBUG, sb.toString());
         }

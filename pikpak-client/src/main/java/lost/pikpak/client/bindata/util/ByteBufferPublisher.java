@@ -13,7 +13,7 @@ public final class ByteBufferPublisher implements Flow.Publisher<ByteBuffer> {
     private final AtomicBoolean subscribed = new AtomicBoolean(false);
 
     public ByteBufferPublisher(ByteBuffer data) {
-        this.data = Objects.requireNonNull(data).asReadOnlyBuffer();
+        this.data = Objects.requireNonNull(data);
     }
 
     @Override

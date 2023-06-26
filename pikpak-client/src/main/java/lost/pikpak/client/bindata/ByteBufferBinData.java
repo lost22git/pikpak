@@ -10,7 +10,7 @@ public final class ByteBufferBinData extends BinDataBase<ByteBuffer> {
 
     public ByteBufferBinData(ByteBuffer data) {
         super(Objects.requireNonNull(data).remaining());
-        this.data = data.asReadOnlyBuffer();
+        this.data = data;
     }
 
     @Override
@@ -26,17 +26,14 @@ public final class ByteBufferBinData extends BinDataBase<ByteBuffer> {
     @Override
     public BytesBinData intoBytes() {
         ensureUnconsumed();
-        try {
-            var data = this.data;
-            if (data.hasArray()) {
-                return new BytesBinData(data.array(), data.position(), (int) len());
-            } else {
-                var dest = new byte[(int) len()];
-                data.get(dest); // copy!
-                return new BytesBinData(dest);
-            }
-        } finally {
-            makeConsumed();
+        var data = this.data;
+        if (data.hasArray()) {
+            return new BytesBinData(data.array(), data.position(), (int) len());
+        } else {
+            data = data.asReadOnlyBuffer();
+            var dest = new byte[(int) len()];
+            data.get(dest); // copy!
+            return new BytesBinData(dest);
         }
     }
 
@@ -48,15 +45,12 @@ public final class ByteBufferBinData extends BinDataBase<ByteBuffer> {
     @Override
     public InputStreamBinData intoInputStream() {
         ensureUnconsumed();
-        try {
-            return new InputStreamBinData(new ByteBufferInputStream(this.data));
-        } finally {
-            makeConsumed();
-        }
+        return new InputStreamBinData(new ByteBufferInputStream(this.data.asReadOnlyBuffer()));
     }
 
     @Override
     public PublisherBinData intoPublisher() {
-        return new PublisherBinData(new ByteBufferPublisher(this.data), len());
+        ensureUnconsumed();
+        return new PublisherBinData(new ByteBufferPublisher(this.data.asReadOnlyBuffer()), len());
     }
 }

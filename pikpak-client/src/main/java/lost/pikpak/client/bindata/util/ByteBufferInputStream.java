@@ -10,7 +10,7 @@ public final class ByteBufferInputStream extends InputStream {
     private ByteBuffer data;
 
     public ByteBufferInputStream(ByteBuffer data) {
-        this.data = Objects.requireNonNull(data).asReadOnlyBuffer();
+        this.data = Objects.requireNonNull(data);
     }
 
     @Override
